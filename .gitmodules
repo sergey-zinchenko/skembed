@@ -1,0 +1,6 @@
+[submodule "vcpkg"]
+	path = vcpkg
+	url = https://github.com/microsoft/vcpkg.git
+[submodule "overlay-ports"]
+	path = overlay-ports
+	url = git@github.com:sergey-zinchenko/overlay-ports.git
