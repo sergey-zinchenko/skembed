@@ -9,7 +9,7 @@
 
 class ModelInitializationHolder : public IModelInitializationHolder {
 private:
-    int initializedCount_ = 0;
+    int64_t initializedCount_ = 0;
     std::mutex mutex_;
 public:
     ~ModelInitializationHolder() override = default;
