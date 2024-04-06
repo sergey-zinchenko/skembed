@@ -10,6 +10,15 @@ project(skembed)
 find_package(faiss CONFIG REQUIRED)
 find_package(llama CONFIG REQUIRED)
 
-add_executable(skembed main.cpp)
+add_executable(skembed
+        include/ModelInitializationHolder.h
+        include/Index.h
+        include/abstract/IIndex.h
+        include/abstract/IModelInitializationHolder.h
+        src/main.cpp
+        src/ModelInitializationHolder.cpp
+        src/Index.cpp)
+
+target_include_directories(skembed PRIVATE include)
 
 target_link_libraries(skembed PRIVATE faiss_avx2 llama_common)

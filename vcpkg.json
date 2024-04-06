@@ -13,6 +13,12 @@
       "default-features": true,
       "features": [
       ]
+    },
+    {
+      "name": "bext-di",
+      "default-features": true,
+      "features": [
+      ]
     }
   ]
 }
