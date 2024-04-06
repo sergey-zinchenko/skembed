@@ -21,10 +21,8 @@ public:
     void Load(std::filesystem::path indexPath) override;
 private:
     std::shared_ptr<IModelInitializationHolder> llamaInitializationHolder_;
-
     std::shared_ptr<llama_model> model_;
     std::shared_ptr<llama_context> ctx_;
-    void initLlama(std::shared_ptr<gpt_params> &params);
 };
 
 

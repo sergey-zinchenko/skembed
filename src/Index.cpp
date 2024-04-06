@@ -18,10 +18,6 @@ void Index::Load(std::filesystem::path indexPath) {
 
 }
 
-void Index::initLlama(std::shared_ptr<gpt_params> &params) {
-    llamaInitializationHolder_->performInitialization();
-}
-
 Index::Index(std::shared_ptr<IModelInitializationHolder> llamaInitializer):
         llamaInitializationHolder_ (std::move(llamaInitializer))
 {
