@@ -11,13 +11,23 @@ Model::Model(gpt_params *params) :
 }
 
 void Model::LoadModel() {
+    std::lock_guard<std::mutex> lock(modelStateMutex_);
+    if (modelLoadedCount_++ > 0)
+        return;
     std::tie(model_, ctx_) = llama_init_from_gpt_params(*params_);
     if (model_ == nullptr) {
         throw std::runtime_error("Unable to load model");
     }
+    n_ctx_train = llama_n_ctx_train(model_);
+    n_ctx = llama_n_ctx(ctx_);
 }
 
 void Model::UnloadModel() {
+    std::lock_guard<std::mutex> lock(modelStateMutex_);
+    if (modelLoadedCount_ <= 0)
+        throw std::runtime_error("Model::UnloadModel() called without initialization");
+    if (modelLoadedCount_-- > 0)
+        return;
     llama_free(ctx_);
     llama_free_model(model_);
 }
