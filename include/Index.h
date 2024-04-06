@@ -13,18 +13,18 @@
 
 class Index: public IIndex {
 public:
-    Index(std::shared_ptr<IModelInitializationHolder> llamaInitializer,
-          std::filesystem::path modelPath);
+    Index(std::shared_ptr<IModelInitializationHolder> llamaInitializer);
+    ~Index() override;
     void Add(std::string key, std::string value) override;
     std::string Search(std::string key) override;
     void Save(std::filesystem::path indexPath) override;
     void Load(std::filesystem::path indexPath) override;
 private:
-    std::shared_ptr<IModelInitializationHolder> llamaInitializer_;
+    std::shared_ptr<IModelInitializationHolder> llamaInitializationHolder_;
 
     std::shared_ptr<llama_model> model_;
     std::shared_ptr<llama_context> ctx_;
-    static void initLlama(std::shared_ptr<gpt_params> &params);
+    void initLlama(std::shared_ptr<gpt_params> &params);
 };
 
 

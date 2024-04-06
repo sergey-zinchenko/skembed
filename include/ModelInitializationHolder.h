@@ -12,6 +12,7 @@ private:
     int initializedCount_ = 0;
     std::mutex mutex_;
 public:
+    ~ModelInitializationHolder() override = default;
     void performInitialization() override;
     void performFinalization() override;
 };

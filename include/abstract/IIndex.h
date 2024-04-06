@@ -9,7 +9,7 @@
 
 class IIndex {
 public:
-    ~IIndex() = default;
+    virtual ~IIndex() = default;
     virtual void Add(std::string key, std::string value) = 0;
     virtual std::string Search(std::string key) = 0;
     virtual void Save(std::filesystem::path indexPath) = 0;

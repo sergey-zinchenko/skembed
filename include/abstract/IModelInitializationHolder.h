@@ -6,7 +6,7 @@
 
 class IModelInitializationHolder {
 public:
-    ~IModelInitializationHolder() = default;
+    virtual ~IModelInitializationHolder() = default;
     virtual void performInitialization() = 0;
     virtual void performFinalization() = 0;
 };
