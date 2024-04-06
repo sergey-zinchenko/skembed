@@ -3,6 +3,7 @@
 //
 
 #include "ModelInitializationHolder.h"
+#include <utility>
 #include "llama/llama.h"
 
 void ModelInitializationHolder::performInitialization() {
@@ -10,7 +11,7 @@ void ModelInitializationHolder::performInitialization() {
     if (initializedCount_++ > 1)
         return;
     llama_backend_init();
-    llama_numa_init(GGML_NUMA_STRATEGY_ISOLATE);
+    llama_numa_init(params_->numa);
 }
 
 void ModelInitializationHolder::performFinalization() {
@@ -21,4 +22,7 @@ void ModelInitializationHolder::performFinalization() {
         return;
     llama_backend_free();
 }
+
+ModelInitializationHolder::ModelInitializationHolder(std::shared_ptr<gpt_params> params):
+    params_(std::move(params)){}
 

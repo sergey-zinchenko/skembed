@@ -16,9 +16,12 @@ add_executable(skembed
         include/abstract/IIndex.h
         include/abstract/IModelInitializationHolder.h
         include/abstract/IModel.h
+        include/Model.h
         src/main.cpp
         src/ModelInitializationHolder.cpp
-        src/Index.cpp)
+        src/Index.cpp
+        src/Model.cpp
+)
 
 target_include_directories(skembed PRIVATE include)
 

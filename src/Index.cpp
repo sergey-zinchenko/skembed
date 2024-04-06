@@ -18,10 +18,13 @@ void Index::Load(std::filesystem::path indexPath) {
 
 }
 
-Index::Index(std::shared_ptr<IModelInitializationHolder> llamaInitializer):
-        llamaInitializationHolder_ (std::move(llamaInitializer))
+Index::Index(std::shared_ptr<IModelInitializationHolder> modelInitializer,
+             std::shared_ptr<IModel> model):
+        modelInitializationHolder_ (std::move(modelInitializer)),
+        model_(std::move(model))
 {
-    llamaInitializationHolder_->performInitialization();
+    modelInitializationHolder_->performInitialization();
+    model_->LoadModel();
 }
 
 std::string Index::Search(std::string key) {
@@ -29,6 +32,7 @@ std::string Index::Search(std::string key) {
 }
 
 Index::~Index() {
-    llamaInitializationHolder_->performFinalization();
+    model_->UnloadModel();
+    modelInitializationHolder_->performFinalization();
 }
 
