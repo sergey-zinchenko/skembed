@@ -6,7 +6,7 @@
 #include <utility>
 #include "llama/llama.h"
 
-void ModelInitializationHolder::performInitialization() {
+void ModelInitializationHolder::PerformInitialization() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (initializedCount_++ > 1)
         return;
@@ -14,10 +14,10 @@ void ModelInitializationHolder::performInitialization() {
     llama_numa_init(params_->numa);
 }
 
-void ModelInitializationHolder::performFinalization() {
+void ModelInitializationHolder::PerformFinalization() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (initializedCount_ <= 0)
-        throw std::runtime_error("ModelInitializationHolder::performFinalization() called without initialization");
+        throw std::runtime_error("ModelInitializationHolder::PerformFinalization() called without initialization");
     if (initializedCount_-- > 0)
         return;
     llama_backend_free();

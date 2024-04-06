@@ -16,6 +16,6 @@ private:
 public:
     explicit ModelInitializationHolder(std::shared_ptr<gpt_params> params);
     ~ModelInitializationHolder() override = default;
-    void performInitialization() override;
-    void performFinalization() override;
+    void PerformInitialization() override;
+    void PerformFinalization() override;
 };

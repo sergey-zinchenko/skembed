@@ -23,7 +23,7 @@ Index::Index(std::shared_ptr<IModelInitializationHolder> modelInitializer,
         modelInitializationHolder_ (std::move(modelInitializer)),
         model_(std::move(model))
 {
-    modelInitializationHolder_->performInitialization();
+    modelInitializationHolder_->PerformInitialization();
     model_->LoadModel();
 }
 
@@ -33,6 +33,6 @@ std::string Index::Search(std::string key) {
 
 Index::~Index() {
     model_->UnloadModel();
-    modelInitializationHolder_->performFinalization();
+    modelInitializationHolder_->PerformFinalization();
 }
 
