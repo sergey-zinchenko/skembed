@@ -23,6 +23,6 @@ void ModelInitializationHolder::PerformFinalization() {
     llama_backend_free();
 }
 
-ModelInitializationHolder::ModelInitializationHolder(std::shared_ptr<gpt_params> params):
-    params_(std::move(params)){}
+ModelInitializationHolder::ModelInitializationHolder(gpt_params *params):
+    params_(params){}
 
