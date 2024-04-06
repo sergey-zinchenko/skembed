@@ -7,7 +7,6 @@
 #include <string>
 #include <filesystem>
 #include <memory>
-#include "llama/common.h"
 #include "abstract/IModelInitializationHolder.h"
 #include "abstract/IIndex.h"
 #include "abstract/IModel.h"
