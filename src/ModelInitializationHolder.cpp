@@ -3,8 +3,6 @@
 //
 
 #include "ModelInitializationHolder.h"
-#include <utility>
-#include "llama/llama.h"
 
 void ModelInitializationHolder::PerformInitialization() {
     std::lock_guard<std::mutex> lock(mutex_);

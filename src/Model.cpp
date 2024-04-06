@@ -4,9 +4,6 @@
 
 #include "Model.h"
 
-#include <vector>
-#include <string>
-
 Model::Model(gpt_params *params) :
         params_(params) {
     params_->embedding = true;
