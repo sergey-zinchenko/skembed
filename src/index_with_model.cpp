@@ -25,7 +25,7 @@ index_with_model::index_with_model(std::shared_ptr<abstract_model_initialization
     model_->load_model();
 }
 
-std::string index_with_model::search(std::string key) {
+std::string index_with_model::search(std::string value) {
     return std::string();
 }
 

@@ -21,6 +21,8 @@ add_executable(skembed
         src/model_initialization_holder.cpp
         src/index_with_model.cpp
         src/model.cpp
+        include/nearest_neighbor_index.h
+        src/nearest_neighbor_index.cpp
 )
 
 target_include_directories(skembed PRIVATE include)

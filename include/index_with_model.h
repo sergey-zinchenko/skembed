@@ -15,7 +15,7 @@ public:
                      std::shared_ptr<abstract_model> model);
     ~index_with_model() override;
     void add(std::string key, std::string value) override;
-    std::string search(std::string key) override;
+    std::string search(std::string value) override;
     void save(std::filesystem::path indexPath) override;
     void load(std::filesystem::path indexPath) override;
 private:
