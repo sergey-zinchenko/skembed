@@ -26,7 +26,7 @@ private:
     gpt_params params_;
     std::shared_ptr<spdlog::logger> logger_;
     std::mutex model_state_mutex_;
-    int64_t model_loaded_count_ = 0;
+    std::atomic<int64_t> model_loaded_count_ = 0;
     llama_context *ctx_{};
     llama_model *model_{};
     int32_t n_batch_{};

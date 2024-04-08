@@ -48,6 +48,8 @@ void model::unload_model() {
 }
 
 std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::string> &prompts) {
+    if (model_loaded_count_ <= 0)
+        throw std::runtime_error("Model::embeddings() called without initialization");
     std::vector<std::vector<int32_t>> inputs = tokenize_and_trim(prompts);
     auto batch = llama_batch_init(n_batch_, 0, 1);
     std::vector<float> embeddings(inputs.size() * n_embed_, 0);
