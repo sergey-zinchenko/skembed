@@ -9,6 +9,7 @@ project(skembed)
 
 find_package(faiss CONFIG REQUIRED)
 find_package(llama CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 add_executable(skembed
         include/model_initialization_holder.h
@@ -27,4 +28,4 @@ add_executable(skembed
 
 target_include_directories(skembed PRIVATE include)
 
-target_link_libraries(skembed PRIVATE faiss_avx2 llama_common)
+target_link_libraries(skembed PRIVATE faiss_avx2 llama_common spdlog::spdlog)
