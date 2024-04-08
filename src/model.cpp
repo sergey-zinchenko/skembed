@@ -48,63 +48,48 @@ void model::unload_model() {
 }
 
 std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::string> &prompts) {
-    // tokenize the prompts and trim
-    std::vector<std::vector<int32_t>> inputs;
-    for (const auto &prompt: prompts) {
-        auto inp = ::llama_tokenize(ctx_, prompt, true, false);
-        if (inp.size() > n_batch_) {
-            throw std::runtime_error(
-                    "Number of tokens in input line exceeds batch size, increase batch size and re-run");
-        }
-        inputs.push_back(inp);
-    }
-
-    // add eos if not present
-    for (auto &inp: inputs) {
-        if (inp.empty() || inp.back() != eos_token_) {
-            inp.push_back(eos_token_);
-        }
-    }
-
-    // initialize batch
-    auto n_prompts = inputs.size();
+    std::vector<std::vector<int32_t>> inputs = tokenize_and_trim(prompts);
     auto batch = llama_batch_init(n_batch_, 0, 1);
+    std::vector<float> embeddings(inputs.size() * n_embed_, 0);
+    process_batches(inputs, batch, embeddings.data());
+    return reshape_embeddings(embeddings, inputs.size());
+}
 
-    // allocate output
-    std::vector<float> embeddings(n_prompts * n_embed_, 0);
-    auto emb = embeddings.data();
+std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) {
+    std::vector<std::vector<int32_t>> tokenized_prompts;
+    for (const auto &prompt: prompts) {
+        auto tokenized_elem = ::llama_tokenize(ctx_, prompt, true, false);
+        if (tokenized_elem.size() > n_batch_) {
+            throw std::runtime_error("Number of tokens in input line exceeds batch size, increase batch size and re-run");
+        }
+        if (tokenized_elem.empty() || tokenized_elem.back() != eos_token_) {
+            tokenized_elem.push_back(eos_token_);
+        }
+        tokenized_prompts.push_back(tokenized_elem);
+    }
+    return tokenized_prompts;
+}
 
-    // break into batches
-    auto p = 0; // number of prompts processed already
-    auto s = 0; // number of prompts in current batch
-    for (int k = 0; k < n_prompts; k++) {
-        // clamp to n_batch tokens
-        auto &inp = inputs[k];
-
-        auto n_tokens = inp.size();
-
-        // encode if at capacity
-        if (batch.n_tokens + n_tokens > n_batch_) {
-            auto out = emb + p * n_embed_;
-            batch_decode(batch, out);
+void model::process_batches(const std::vector<std::vector<int32_t>> &inputs, llama_batch &batch, float *emb) const {
+    auto p = 0, s = 0;
+    for (const auto & inp : inputs) {
+        if (batch.n_tokens + inp.size() > n_batch_) {
+            batch_decode(batch, emb + p * n_embed_);
             llama_batch_clear(batch);
             p += s;
             s = 0;
         }
-
-        // add to batch
-        batch_add_seq(batch, inp, s);
-        s += 1;
+        batch_add_seq(batch, inp, s++);
     }
-
-    // final batch
-    float *out = emb + p * n_embed_;
-    batch_decode(batch, out);
-
-    return std::vector<std::vector<float_t>>(n_prompts, std::vector<float_t>(emb, emb + n_prompts * n_embed_));
+    batch_decode(batch, emb + p * n_embed_);
 }
 
-void model::batch_decode(llama_batch &batch, float *output) {
+std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<float> &embeddings, size_t n_prompts) {
+    return std::vector<std::vector<float_t>>(n_prompts, std::vector<float_t>(embeddings.begin(), embeddings.end()));
+}
+
+
+void model::batch_decode(llama_batch &batch, float *output) const {
     // clear previous kv_cache values (irrelevant for embeddings)
     llama_kv_cache_clear(ctx_);
 
@@ -134,4 +119,3 @@ void model::batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens
         llama_batch_add(batch, tokens[i], i, {seq_id}, i == tokens.size() - 1);
     }
 }
-
