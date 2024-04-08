@@ -10,6 +10,7 @@ model::model(gpt_params params, std::shared_ptr<spdlog::logger> logger) :
 }
 
 void model::load_model() {
+    logger_->trace("Loading model");
     std::unique_lock lock(mutex_);
     if (model_loaded_count_++ > 0)
         return;
@@ -26,8 +27,7 @@ void model::load_model() {
     auto n_ctx_train = llama_n_ctx_train(model_);
     auto n_ctx = llama_n_ctx(ctx_);
     if (n_ctx > n_ctx_train) {
-        throw std::runtime_error("Model was trained on only " + std::to_string(n_ctx_train) +
-                                 " context tokens (" + std::to_string(n_ctx) + " specified)");
+        logger_->warn("Model was trained on only {} context tokens ({} specified)", n_ctx_train, n_ctx);
     }
     n_batch_ = params_.n_batch;
     if (params_.n_batch < params_.n_ctx) {
@@ -35,19 +35,25 @@ void model::load_model() {
     }
     n_embed_ = llama_n_embd(model_);
     eos_token_ = llama_token_eos(model_);
+    logger_->trace("Model loaded");
 }
 
 void model::unload_model() {
+    logger_->trace("Unloading model");
     std::unique_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         throw std::runtime_error("Model::unload_model() called without initialization");
-    if (model_loaded_count_-- > 0)
+    if (model_loaded_count_-- > 0) {
+        logger_->trace("Model still in use");
         return;
+    }
     llama_free(ctx_);
     llama_free_model(model_);
+    logger_->trace("Model unloaded");
 }
 
 std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::string> &prompts) {
+    logger_->trace("Embedding prompts");
     std::shared_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         throw std::runtime_error("Model::embeddings() called without initialization");
@@ -55,6 +61,7 @@ std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::strin
     auto batch = llama_batch_init(n_batch_, 0, 1);
     std::vector<float> embeddings(inputs.size() * n_embed_, 0);
     process_batches(inputs, batch, embeddings.data());
+    logger_->trace("Prompts embedded");
     return reshape_embeddings(embeddings, inputs.size());
 }
 
