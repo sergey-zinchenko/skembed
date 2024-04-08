@@ -39,6 +39,8 @@ std::vector<faiss::idx_t> nearest_neighbor_index::search(std::vector<float_t> va
     index_->search(1, value.data(), number_of_extracted_results,
                    result_distances, results_idxes);
     std::vector<faiss::idx_t> results(results_idxes, results_idxes + number_of_extracted_results);
+    delete[] results_idxes;
+    delete[] result_distances;
     logger_->trace("Querying index finished. Nearest result index is {} with distance {}", results_idxes[0], result_distances[0]);
     return results;
 }
