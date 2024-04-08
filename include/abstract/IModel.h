@@ -12,5 +12,5 @@ public:
     virtual ~IModel() = default;
     virtual void LoadModel() = 0;
     virtual void UnloadModel() = 0;
-    virtual std::vector<float_t> Embeddings(std::string text) = 0;
+    virtual std::vector<std::vector<float_t>> Embeddings(const std::vector<std::string> &prompts) = 0;
 };

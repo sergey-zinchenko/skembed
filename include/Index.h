@@ -22,5 +22,3 @@ private:
     std::shared_ptr<IModelInitializationHolder> modelInitializationHolder_;
     std::shared_ptr<IModel> model_;
 };
-
-

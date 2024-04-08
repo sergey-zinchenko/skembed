@@ -18,8 +18,22 @@ void Model::LoadModel() {
     if (model_ == nullptr) {
         throw std::runtime_error("Unable to load model");
     }
-    n_ctx_train = llama_n_ctx_train(model_);
-    n_ctx = llama_n_ctx(ctx_);
+    std::mt19937 rng(params_->seed);
+    if (params_->random_prompt) {
+        params_->prompt = gpt_random_prompt(rng);
+    }
+    auto n_ctx_train = llama_n_ctx_train(model_);
+    auto n_ctx = llama_n_ctx(ctx_);
+    if (n_ctx > n_ctx_train) {
+        throw std::runtime_error("Model was trained on only " + std::to_string(n_ctx_train) +
+                                 " context tokens (" + std::to_string(n_ctx) + " specified)");
+    }
+    nBatch = params_->n_batch;
+    if (params_->n_batch < params_->n_ctx) {
+        throw std::runtime_error("Batch size must be greater than context size");
+    }
+    nEmbd = llama_n_embd(model_);
+    eosToken = llama_token_eos(model_);
 }
 
 void Model::UnloadModel() {
@@ -32,13 +46,91 @@ void Model::UnloadModel() {
     llama_free_model(model_);
 }
 
-std::vector<float_t> Model::Embeddings(std::string text) {
-    std::vector<int32_t> tokens = ::llama_tokenize(ctx_, text, true, false);
-    const float *embd = llama_get_embeddings_seq(ctx_, tokens[0]);
-    if (embd == nullptr) {
-        throw std::runtime_error("Failed to get embeddings");
+std::vector<std::vector<float_t>> Model::Embeddings(const std::vector<std::string> &prompts) {
+    // tokenize the prompts and trim
+    std::vector<std::vector<int32_t>> inputs;
+    for (const auto &prompt: prompts) {
+        auto inp = ::llama_tokenize(ctx_, prompt, true, false);
+        if (inp.size() > nBatch) {
+            throw std::runtime_error(
+                    "Number of tokens in input line exceeds batch size, increase batch size and re-run");
+        }
+        inputs.push_back(inp);
     }
-    std::vector<float_t> embeddings(embd, embd + llama_n_embd(model_));
-    return embeddings;
+
+    // add eos if not present
+    for (auto &inp: inputs) {
+        if (inp.empty() || inp.back() != eosToken) {
+            inp.push_back(eosToken);
+        }
+    }
+
+    // initialize batch
+    auto n_prompts = inputs.size();
+    auto batch = llama_batch_init(nBatch, 0, 1);
+
+    // allocate output
+    std::vector<float> embeddings(n_prompts * nEmbd, 0);
+    auto emb = embeddings.data();
+
+    // break into batches
+    auto p = 0; // number of prompts processed already
+    auto s = 0; // number of prompts in current batch
+    for (int k = 0; k < n_prompts; k++) {
+        // clamp to n_batch tokens
+        auto &inp = inputs[k];
+
+        auto n_toks = inp.size();
+
+        // encode if at capacity
+        if (batch.n_tokens + n_toks > nBatch) {
+            auto out = emb + p * nEmbd;
+            batchDecode(batch, out);
+            llama_batch_clear(batch);
+            p += s;
+            s = 0;
+        }
+
+        // add to batch
+        batchAddSeq(batch, inp, s);
+        s += 1;
+    }
+
+    // final batch
+    float *out = emb + p * nEmbd;
+    batchDecode(batch, out);
+
+    return std::vector<std::vector<float_t>>(n_prompts, std::vector<float_t>(emb, emb + n_prompts * nEmbd));
+}
+
+void Model::batchDecode(llama_batch &batch, float *output) {
+    // clear previous kv_cache values (irrelevant for embeddings)
+    llama_kv_cache_clear(ctx_);
+
+    // run model
+    llama_decode(ctx_, batch);
+
+    for (auto i = 0; i < batch.n_tokens; i++) {
+        if (!batch.logits[i]) {
+            continue;
+        }
+
+        const float *embd = llama_get_embeddings_seq(ctx_, batch.seq_id[i][0]);
+        if (embd == nullptr) {
+            embd = llama_get_embeddings_ith(ctx_, i);
+            if (embd == nullptr) {
+                continue;
+            }
+        }
+
+        float *out = output + batch.seq_id[i][0] * nEmbd;
+        llama_embd_normalize(embd, out, nEmbd);
+    }
+}
+
+void Model::batchAddSeq(llama_batch &batch, const std::vector<int32_t> &tokens, int seq_id) {
+    for (auto i = 0; i < tokens.size(); i++) {
+        llama_batch_add(batch, tokens[i], i, {seq_id}, i == tokens.size() - 1);
+    }
 }
 
