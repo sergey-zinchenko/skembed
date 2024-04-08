@@ -12,14 +12,14 @@ find_package(llama CONFIG REQUIRED)
 
 add_executable(skembed
         include/model_initialization_holder.h
-        include/index.h
+        include/index_with_model.h
         include/abstract/abstract_index.h
         include/abstract/abstract_model_initialization_holder.h
         include/abstract/abstract_model.h
         include/model.h
         src/main.cpp
         src/model_initialization_holder.cpp
-        src/index.cpp
+        src/index_with_model.cpp
         src/model.cpp
 )
 
