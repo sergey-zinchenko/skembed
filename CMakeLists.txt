@@ -19,7 +19,7 @@ add_executable(skembed
         include/model.h
         src/main.cpp
         src/model_initialization_holder.cpp
-        src/Index.cpp
+        src/index_with_model.cpp
         src/model.cpp
 )
 

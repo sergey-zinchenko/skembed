@@ -4,12 +4,14 @@
 
 #include "model_initialization_holder.h"
 
+#include <utility>
+
 void model_initialization_holder::perform_initialization() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (initialized_count_++ > 1)
         return;
     llama_backend_init();
-    llama_numa_init(params_->numa);
+    llama_numa_init(params_.numa);
 }
 
 void model_initialization_holder::perform_finalization() {
@@ -21,6 +23,6 @@ void model_initialization_holder::perform_finalization() {
     llama_backend_free();
 }
 
-model_initialization_holder::model_initialization_holder(gpt_params *params):
-    params_(params){}
+model_initialization_holder::model_initialization_holder(gpt_params params):
+    params_(std::move(params)){}
 
