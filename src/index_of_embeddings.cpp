@@ -17,9 +17,11 @@ void index_of_embeddings::load(std::filesystem::path indexPath) {
 }
 
 index_of_embeddings::index_of_embeddings(std::shared_ptr<abstract_model_initialization_holder> modelInitializer,
-                                         std::shared_ptr<abstract_model> model):
+                                         std::shared_ptr<abstract_model> model,
+                                         std::shared_ptr<abstract_index<std::string, std::vector<float_t>>> index_delegate):
         modelInitializationHolder_ (std::move(modelInitializer)),
-        model_(std::move(model))
+        model_(std::move(model)),
+        index_delegate_(std::move(index_delegate))
 {
     modelInitializationHolder_->perform_initialization();
     model_->load_model();

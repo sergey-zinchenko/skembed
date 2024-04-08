@@ -12,7 +12,8 @@
 class index_of_embeddings: public abstract_index<std::string, std::string> {
 public:
     index_of_embeddings(std::shared_ptr<abstract_model_initialization_holder> modelInitializer,
-                        std::shared_ptr<abstract_model> model);
+                        std::shared_ptr<abstract_model> model,
+                        std::shared_ptr<abstract_index<std::string, std::vector<float_t>>> index_delegate);
     ~index_of_embeddings() override;
     void add(std::string key, std::string value) override;
     std::string search(std::string value) override;
@@ -21,4 +22,5 @@ public:
 private:
     std::shared_ptr<abstract_model_initialization_holder> modelInitializationHolder_;
     std::shared_ptr<abstract_model> model_;
+    std::shared_ptr<abstract_index<std::string, std::vector<float_t>>> index_delegate_;
 };
