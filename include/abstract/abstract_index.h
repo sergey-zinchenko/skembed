@@ -12,7 +12,7 @@ class abstract_index {
 public:
     virtual ~abstract_index() = default;
     virtual void add(KeyType key, ValueType value) = 0;
-    virtual ValueType search(KeyType value) = 0;
+    virtual KeyType search(ValueType value) = 0;
     virtual void save(std::filesystem::path indexPath) = 0;
     virtual void load(std::filesystem::path indexPath) = 0;
 };
