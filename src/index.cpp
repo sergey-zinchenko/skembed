@@ -2,21 +2,21 @@
 // Created by Sergei on 4/5/2024.
 //
 
-#include "index_with_model.h"
+#include "index.h"
 
-void index_with_model::add(std::string key, std::string value) {
-
-}
-
-void index_with_model::save(std::filesystem::path indexPath) {
+void index::add(std::string key, std::string value) {
 
 }
 
-void index_with_model::load(std::filesystem::path indexPath) {
+void index::save(std::filesystem::path indexPath) {
 
 }
 
-index_with_model::index_with_model(std::shared_ptr<abstract_model_initialization_holder> modelInitializer,
+void index::load(std::filesystem::path indexPath) {
+
+}
+
+index::index(std::shared_ptr<abstract_model_initialization_holder> modelInitializer,
                                    std::shared_ptr<abstract_model> model):
         modelInitializationHolder_ (std::move(modelInitializer)),
         model_(std::move(model))
@@ -25,11 +25,11 @@ index_with_model::index_with_model(std::shared_ptr<abstract_model_initialization
     model_->load_model();
 }
 
-std::string index_with_model::search(std::string key) {
+std::string index::search(std::string key) {
     return std::string();
 }
 
-index_with_model::~index_with_model() {
+index::~index() {
     model_->unload_model();
     modelInitializationHolder_->perform_finalization();
 }

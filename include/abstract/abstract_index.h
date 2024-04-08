@@ -7,11 +7,13 @@
 #include <string>
 #include <filesystem>
 
-class abstract_index_with_model {
+template<typename KeyType, typename ValueType>
+class abstract_index {
 public:
-    virtual ~abstract_index_with_model() = default;
-    virtual void add(std::string key, std::string value) = 0;
-    virtual std::string search(std::string key) = 0;
+    virtual ~abstract_index() = default;
+    virtual void add(KeyType key, ValueType value) = 0;
+    virtual ValueType search(KeyType key) = 0;
     virtual void save(std::filesystem::path indexPath) = 0;
     virtual void load(std::filesystem::path indexPath) = 0;
 };
+
