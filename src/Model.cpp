@@ -4,16 +4,17 @@
 
 #include "Model.h"
 
-Model::Model(gpt_params *params) :
-        params_(params) {
-    params_->embedding = true;
-    params_->n_ubatch = params_->n_batch;
+Model::Model(gpt_params *params, std::shared_ptr<spdlog::logger> logger) :
+        params_(params),
+        logger_(std::move(logger)){
 }
 
 void Model::LoadModel() {
     std::lock_guard<std::mutex> lock(modelStateMutex_);
     if (modelLoadedCount_++ > 0)
         return;
+    params_->embedding = true;
+    params_->n_ubatch = params_->n_batch;
     std::tie(model_, ctx_) = llama_init_from_gpt_params(*params_);
     if (model_ == nullptr) {
         throw std::runtime_error("Unable to load model");
@@ -32,7 +33,7 @@ void Model::LoadModel() {
     if (params_->n_batch < params_->n_ctx) {
         throw std::runtime_error("Batch size must be greater than context size");
     }
-    nEmbd = llama_n_embd(model_);
+    nEmbed = llama_n_embd(model_);
     eosToken = llama_token_eos(model_);
 }
 
@@ -70,7 +71,7 @@ std::vector<std::vector<float_t>> Model::Embeddings(const std::vector<std::strin
     auto batch = llama_batch_init(nBatch, 0, 1);
 
     // allocate output
-    std::vector<float> embeddings(n_prompts * nEmbd, 0);
+    std::vector<float> embeddings(n_prompts * nEmbed, 0);
     auto emb = embeddings.data();
 
     // break into batches
@@ -84,7 +85,7 @@ std::vector<std::vector<float_t>> Model::Embeddings(const std::vector<std::strin
 
         // encode if at capacity
         if (batch.n_tokens + n_toks > nBatch) {
-            auto out = emb + p * nEmbd;
+            auto out = emb + p * nEmbed;
             batchDecode(batch, out);
             llama_batch_clear(batch);
             p += s;
@@ -97,10 +98,10 @@ std::vector<std::vector<float_t>> Model::Embeddings(const std::vector<std::strin
     }
 
     // final batch
-    float *out = emb + p * nEmbd;
+    float *out = emb + p * nEmbed;
     batchDecode(batch, out);
 
-    return std::vector<std::vector<float_t>>(n_prompts, std::vector<float_t>(emb, emb + n_prompts * nEmbd));
+    return std::vector<std::vector<float_t>>(n_prompts, std::vector<float_t>(emb, emb + n_prompts * nEmbed));
 }
 
 void Model::batchDecode(llama_batch &batch, float *output) {
@@ -123,8 +124,8 @@ void Model::batchDecode(llama_batch &batch, float *output) {
             }
         }
 
-        float *out = output + batch.seq_id[i][0] * nEmbd;
-        llama_embd_normalize(embd, out, nEmbd);
+        float *out = output + batch.seq_id[i][0] * nEmbed;
+        llama_embd_normalize(embd, out, nEmbed);
     }
 }
 

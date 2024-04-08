@@ -14,11 +14,7 @@
       "features": [
       ]
     },
-    {
-      "name": "bext-di",
-      "default-features": true,
-      "features": [
-      ]
-    }
+    "bext-di",
+    "spdlog"
   ]
 }
