@@ -122,3 +122,12 @@ void model::batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens
         llama_batch_add(batch, tokens[i], i, {seq_id}, i == tokens.size() - 1);
     }
 }
+
+model::~model() {
+    std::lock_guard<std::mutex> lock(model_state_mutex_);
+    if (model_loaded_count_ <= 0)
+        return;
+    model_loaded_count_ = 0;
+    llama_free(ctx_);
+    llama_free_model(model_);
+}
