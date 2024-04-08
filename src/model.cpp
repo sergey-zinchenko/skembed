@@ -101,16 +101,16 @@ void model::batch_decode(llama_batch &batch, float *output) const {
             continue;
         }
 
-        const float *embd = llama_get_embeddings_seq(ctx_, batch.seq_id[i][0]);
-        if (embd == nullptr) {
-            embd = llama_get_embeddings_ith(ctx_, i);
-            if (embd == nullptr) {
+        const float *embed = llama_get_embeddings_seq(ctx_, batch.seq_id[i][0]);
+        if (embed == nullptr) {
+            embed = llama_get_embeddings_ith(ctx_, i);
+            if (embed == nullptr) {
                 continue;
             }
         }
 
         float *out = output + batch.seq_id[i][0] * n_embed_;
-        llama_embd_normalize(embd, out, n_embed_);
+        llama_embd_normalize(embed, out, n_embed_);
     }
 }
 
