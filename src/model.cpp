@@ -10,7 +10,7 @@ model::model(gpt_params params, std::shared_ptr<spdlog::logger> logger) :
 }
 
 void model::load_model() {
-    std::lock_guard<std::mutex> lock(model_state_mutex_);
+    std::unique_lock lock(mutex_);
     if (model_loaded_count_++ > 0)
         return;
     params_.embedding = true;
@@ -38,7 +38,7 @@ void model::load_model() {
 }
 
 void model::unload_model() {
-    std::lock_guard<std::mutex> lock(model_state_mutex_);
+    std::unique_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         throw std::runtime_error("Model::unload_model() called without initialization");
     if (model_loaded_count_-- > 0)
@@ -48,6 +48,7 @@ void model::unload_model() {
 }
 
 std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::string> &prompts) {
+    std::shared_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         throw std::runtime_error("Model::embeddings() called without initialization");
     std::vector<std::vector<int32_t>> inputs = tokenize_and_trim(prompts);
@@ -124,7 +125,7 @@ void model::batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens
 }
 
 model::~model() {
-    std::lock_guard<std::mutex> lock(model_state_mutex_);
+    std::unique_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         return;
     model_loaded_count_ = 0;

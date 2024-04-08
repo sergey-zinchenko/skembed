@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <mutex>
+#include <shared_mutex>
 #include "abstract/abstract_model.h"
 #include "llama/llama.h"
 #include "llama/common.h"
@@ -26,8 +26,8 @@ private:
     static void batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens, int seq_id);
     gpt_params params_;
     std::shared_ptr<spdlog::logger> logger_;
-    std::mutex model_state_mutex_;
-    std::atomic<int64_t> model_loaded_count_ = 0;
+    std::shared_mutex mutex_;
+    int64_t model_loaded_count_ = 0;
     llama_context *ctx_{};
     llama_model *model_{};
     int32_t n_batch_{};
