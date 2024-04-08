@@ -11,16 +11,16 @@ find_package(faiss CONFIG REQUIRED)
 find_package(llama CONFIG REQUIRED)
 
 add_executable(skembed
-        include/ModelInitializationHolder.h
-        include/Index.h
-        include/abstract/IIndex.h
-        include/abstract/IModelInitializationHolder.h
-        include/abstract/IModel.h
-        include/Model.h
+        include/model_initialization_holder.h
+        include/index_with_model.h
+        include/abstract/abstract_index_with_model.h
+        include/abstract/abstract_model_initialization_holder.h
+        include/abstract/abstract_model.h
+        include/model.h
         src/main.cpp
-        src/ModelInitializationHolder.cpp
+        src/model_initialization_holder.cpp
         src/Index.cpp
-        src/Model.cpp
+        src/model.cpp
 )
 
 target_include_directories(skembed PRIVATE include)
