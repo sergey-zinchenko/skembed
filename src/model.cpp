@@ -6,7 +6,7 @@
 
 model::model(gpt_params params, std::shared_ptr<spdlog::logger> logger) :
         params_(std::move(params)),
-        logger_(std::move(logger)){
+        logger_(std::move(logger)) {
 }
 
 void model::load_model() {
@@ -62,7 +62,8 @@ std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std
     for (const auto &prompt: prompts) {
         auto tokenized_elem = ::llama_tokenize(ctx_, prompt, true, false);
         if (tokenized_elem.size() > n_batch_) {
-            throw std::runtime_error("Number of tokens in input line exceeds batch size, increase batch size and re-run");
+            throw std::runtime_error(
+                    "Number of tokens in input line exceeds batch size, increase batch size and re-run");
         }
         if (tokenized_elem.empty() || tokenized_elem.back() != eos_token_) {
             tokenized_elem.push_back(eos_token_);
@@ -74,7 +75,7 @@ std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std
 
 void model::process_batches(const std::vector<std::vector<int32_t>> &inputs, llama_batch &batch, float *emb) const {
     auto p = 0, s = 0;
-    for (const auto & inp : inputs) {
+    for (const auto &inp: inputs) {
         if (batch.n_tokens + inp.size() > n_batch_) {
             batch_decode(batch, emb + p * n_embed_);
             llama_batch_clear(batch);
