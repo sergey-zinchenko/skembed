@@ -114,7 +114,6 @@ std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<fl
     return result;
 }
 
-
 void model::batch_decode(llama_batch &batch, float *output) const {
     // clear previous kv_cache values (irrelevant for embeddings)
     llama_kv_cache_clear(ctx_);
@@ -122,27 +121,24 @@ void model::batch_decode(llama_batch &batch, float *output) const {
     // run model
     auto decode_result = llama_decode(ctx_, batch);
     if (decode_result == 1)
-        logger_->warn(
-                "could not find a KV slot for the batch (try reducing the size of the batch or increase the context)");
+        logger_->warn("could not find a KV slot for the batch (try reducing the size of the batch or increase the context)");
     else if (decode_result < 0)
         throw std::runtime_error("error decoding batch");
-
 
     for (auto i = 0; i < batch.n_tokens; i++) {
         if (!batch.logits[i]) {
             continue;
         }
 
-        const float *embed = llama_get_embeddings_seq(ctx_, batch.seq_id[i][0]);
-        if (embed == nullptr) {
+        auto embed = llama_get_embeddings_seq(ctx_, batch.seq_id[i][0]);
+        if (!embed) {
             embed = llama_get_embeddings_ith(ctx_, i);
-            if (embed == nullptr) {
-                continue;
-            }
         }
 
-        float *out = output + batch.seq_id[i][0] * n_embed_;
-        llama_embd_normalize(embed, out, n_embed_);
+        if (embed) {
+            auto out = output + batch.seq_id[i][0] * n_embed_;
+            llama_embd_normalize(embed, out, n_embed_);
+        }
     }
 }
 
