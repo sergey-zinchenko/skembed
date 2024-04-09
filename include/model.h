@@ -20,8 +20,8 @@ public:
     ~model() override;
 private:
     [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::vector<std::string> &prompts) const;
-    [[nodiscard]] std::vector<float_t> process_batches(const std::vector<std::vector<int32_t>> &inputs) const;
-    [[nodiscard]] std::vector<std::vector<float_t>> reshape_embeddings(const std::vector<float> &embeddings) const;
+    [[nodiscard]] std::vector<float_t> process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const;
+    [[nodiscard]] std::vector<std::vector<float_t>> reshape_embeddings(const std::vector<float> &flat_embeddings) const;
     void batch_decode(llama_batch &batch, float *output) const;
     static void batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens, int seq_id);
     gpt_params params_;
