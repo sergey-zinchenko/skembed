@@ -121,7 +121,8 @@ void model::batch_decode(llama_batch &batch, float *output) const {
     // run model
     auto decode_result = llama_decode(ctx_, batch);
     if (decode_result == 1)
-        logger_->warn("could not find a KV slot for the batch (try reducing the size of the batch or increase the context)");
+        logger_->warn(
+                "could not find a KV slot for the batch (try reducing the size of the batch or increase the context)");
     else if (decode_result < 0)
         throw std::runtime_error("error decoding batch");
 
