@@ -43,7 +43,7 @@ void model::unload_model() {
     std::unique_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         throw std::runtime_error("Model::unload_model() called without initialization");
-    if (model_loaded_count_-- > 0) {
+    if (--model_loaded_count_ > 0) {
         logger_->trace("Model still in use");
         return;
     }
