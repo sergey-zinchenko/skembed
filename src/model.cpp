@@ -73,8 +73,7 @@ std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::strin
     return result;
 }
 
-std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) const
-{
+std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) const {
     std::vector<std::vector<int32_t>> tokenized_prompts;
     for (const auto &prompt: prompts) {
         auto tokenized_elem = ::llama_tokenize(ctx_, prompt, true, false);
@@ -90,8 +89,7 @@ std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std
     return tokenized_prompts;
 }
 
-std::vector<float_t> model::process_batches(const std::vector<std::vector<int32_t>> &inputs) const
-{
+std::vector<float_t> model::process_batches(const std::vector<std::vector<int32_t>> &inputs) const {
     std::vector<float_t> embeddings(inputs.size() * n_embed_, 0);
     auto batch = llama_batch_init(n_batch_, 0, 1);
     auto p_emb = embeddings.data();
@@ -111,8 +109,7 @@ std::vector<float_t> model::process_batches(const std::vector<std::vector<int32_
     return embeddings;
 }
 
-std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<float> &embeddings) const
-{
+std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<float> &embeddings) const {
     std::vector<std::vector<float_t>> result;
     for (auto i = 0; i < embeddings.size(); i += n_embed_) {
         result.emplace_back(embeddings.begin() + i, embeddings.begin() + i + n_embed_);
