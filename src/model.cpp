@@ -61,11 +61,9 @@ std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::strin
     std::shared_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         throw std::runtime_error("Model::embeddings() called without initialization");
-    std::vector<std::vector<int32_t>> inputs = tokenize_and_trim(prompts);
-    auto batch = llama_batch_init(n_batch_, 0, 1);
-    std::vector<float> embeddings(inputs.size() * n_embed_, 0);
-    process_batches(inputs, batch, embeddings.data());
-    auto result = reshape_embeddings(embeddings, inputs.size());
+    auto inputs = tokenize_and_trim(prompts);
+    auto embeddings = process_batches(inputs);
+    auto result = reshape_embeddings(embeddings);
     logger_->trace("Prompts embedded");
 //    for (const auto& vec : result) {
 //        for (int i = 0; i < std::min(16, static_cast<int>(vec.size())); ++i) {
@@ -75,7 +73,8 @@ std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::strin
     return result;
 }
 
-std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) {
+std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) const
+{
     std::vector<std::vector<int32_t>> tokenized_prompts;
     for (const auto &prompt: prompts) {
         auto tokenized_elem = ::llama_tokenize(ctx_, prompt, true, false);
@@ -91,22 +90,33 @@ std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std
     return tokenized_prompts;
 }
 
-void model::process_batches(const std::vector<std::vector<int32_t>> &inputs, llama_batch &batch, float *emb) const {
+std::vector<float_t> model::process_batches(const std::vector<std::vector<int32_t>> &inputs) const
+{
+    std::vector<float_t> embeddings(inputs.size() * n_embed_, 0);
+    auto batch = llama_batch_init(n_batch_, 0, 1);
+    auto p_emb = embeddings.data();
     auto p = 0, s = 0;
     for (const auto &inp: inputs) {
         if (batch.n_tokens + inp.size() > n_batch_) {
-            batch_decode(batch, emb + p * n_embed_);
+            batch_decode(batch, p_emb + p * n_embed_);
             llama_batch_clear(batch);
             p += s;
             s = 0;
         }
         batch_add_seq(batch, inp, s++);
     }
-    batch_decode(batch, emb + p * n_embed_);
+    batch_decode(batch, p_emb + p * n_embed_);
+    llama_batch_free(batch);
+    return embeddings;
 }
 
-std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<float> &embeddings, size_t n_prompts) {
-    return std::vector<std::vector<float_t>>(n_prompts, std::vector<float_t>(embeddings.begin(), embeddings.end()));
+std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<float> &embeddings) const
+{
+    std::vector<std::vector<float_t>> result;
+    for (size_t i = 0; i < embeddings.size(); i += n_embed_) {
+        result.emplace_back(embeddings.begin() + i, embeddings.begin() + std::min(i + n_embed_, embeddings.size()));
+    }
+    return result;
 }
 
 
@@ -115,7 +125,13 @@ void model::batch_decode(llama_batch &batch, float *output) const {
     llama_kv_cache_clear(ctx_);
 
     // run model
-    llama_decode(ctx_, batch);
+    auto decode_result = llama_decode(ctx_, batch);
+    if (decode_result == 1)
+        logger_->warn(
+                "could not find a KV slot for the batch (try reducing the size of the batch or increase the context)");
+    else if (decode_result < 0)
+        throw std::runtime_error("error decoding batch");
+
 
     for (auto i = 0; i < batch.n_tokens; i++) {
         if (!batch.logits[i]) {
