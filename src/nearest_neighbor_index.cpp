@@ -68,13 +68,12 @@ void nearest_neighbor_index::load(std::filesystem::path indexPath) {
     auto p_index_id_map = dynamic_cast<faiss::IndexIDMap *>(p_index);
     if (!p_index_id_map) {
         delete p_index;
-        throw std::runtime_error("Failed to cast index to IndexFlatL2");
+        throw std::runtime_error("Failed to cast index to IndexIDMap");
     }
     auto index_flat_l2 = dynamic_cast<faiss::IndexFlatL2 *>(p_index_id_map->index);
     if (!index_flat_l2) {
         delete p_index;
-        delete p_index_id_map->index;
-        throw std::runtime_error("Failed to cast index to IndexFlatL2");
+        throw std::runtime_error("Failed to cast underlying index to IndexFlatL2");
     }
     index_ = p_index_id_map;
     underlying_index_ = index_flat_l2;

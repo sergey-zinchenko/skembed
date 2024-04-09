@@ -106,6 +106,7 @@ std::vector<float_t> model::process_batches(const std::vector<std::vector<int32_
         batch_add_seq(batch, inp, s++);
     }
     batch_decode(batch, p_emb + p * n_embed_);
+    llama_batch_clear(batch);
     llama_batch_free(batch);
     return embeddings;
 }
@@ -113,8 +114,8 @@ std::vector<float_t> model::process_batches(const std::vector<std::vector<int32_
 std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<float> &embeddings) const
 {
     std::vector<std::vector<float_t>> result;
-    for (size_t i = 0; i < embeddings.size(); i += n_embed_) {
-        result.emplace_back(embeddings.begin() + i, embeddings.begin() + std::min(i + n_embed_, embeddings.size()));
+    for (auto i = 0; i < embeddings.size(); i += n_embed_) {
+        result.emplace_back(embeddings.begin() + i, embeddings.begin() + i + n_embed_);
     }
     return result;
 }
