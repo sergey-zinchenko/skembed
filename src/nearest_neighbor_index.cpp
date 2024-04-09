@@ -13,16 +13,25 @@ void nearest_neighbor_index::add(std::vector<faiss::idx_t> keys, std::vector<std
     logger_->trace("Adding {} vectors to index", keys.size());
     if (keys.size() != values.size())
         throw std::runtime_error("Keys and values sizes are different");
+    if (keys.empty())
+        return;
     std::unique_lock lock(mutex_);
-    if (index_ == nullptr) {
-        index_ = std::make_unique<faiss::IndexFlatL2>(values[0].size());
+    if (index_) {
+        if (index_->d != values[0].size())
+            throw std::runtime_error("Index dimension is different from the dimension of the added vectors");
+    }
+    else
+    {
+        auto size = values[0].size();
+        underlying_index_ = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(size));
+        index_ = new faiss::IndexIDMap(underlying_index_);
     }
     std::vector<float_t> flat_value;
     for (const auto& v : values) {
         flat_value.insert(flat_value.end(), v.begin(), v.end());
     }
     index_->add_with_ids(static_cast<faiss::idx_t>(keys.size()), flat_value.data(), keys.data());
-    logger_->trace("Added {} vectors to index", keys.size());
+    logger_->trace("Added {} vectors to index. New index size is {}", keys.size(), index_->ntotal);
 }
 
 nearest_neighbor_index::nearest_neighbor_index(std::shared_ptr<spdlog::logger> logger) :
@@ -48,7 +57,7 @@ std::vector<faiss::idx_t> nearest_neighbor_index::search(std::vector<float_t> va
 void nearest_neighbor_index::save(std::filesystem::path indexPath) {
     logger_->trace("Saving index to {}", indexPath.string());
     std::shared_lock lock(mutex_);
-    faiss::write_index(index_.get(), indexPath.string().c_str());
+    faiss::write_index(index_, indexPath.string().c_str());
     logger_->trace("Index saved to {}", indexPath.string());
 }
 
@@ -56,11 +65,18 @@ void nearest_neighbor_index::load(std::filesystem::path indexPath) {
     logger_->trace("Loading index from {}", indexPath.string());
     std::unique_lock lock(mutex_);
     auto p_index = faiss::read_index(indexPath.string().c_str());
-    auto p_index_flat_l2 = dynamic_cast<faiss::IndexFlatL2 *>(p_index);
-    if (!p_index_flat_l2) {
+    auto p_index_id_map = dynamic_cast<faiss::IndexIDMap *>(p_index);
+    if (!p_index_id_map) {
         delete p_index;
         throw std::runtime_error("Failed to cast index to IndexFlatL2");
     }
-    index_ = std::unique_ptr<faiss::IndexFlatL2>(p_index_flat_l2);
+    auto index_flat_l2 = dynamic_cast<faiss::IndexFlatL2 *>(p_index_id_map->index);
+    if (!index_flat_l2) {
+        delete p_index;
+        delete p_index_id_map->index;
+        throw std::runtime_error("Failed to cast index to IndexFlatL2");
+    }
+    index_ = p_index_id_map;
+    underlying_index_ = index_flat_l2;
     logger_->trace("Index loaded with {} indexed vectors of {} dimensions", index_->ntotal, index_->d);
 }

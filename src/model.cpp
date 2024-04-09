@@ -54,6 +54,10 @@ void model::unload_model() {
 
 std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::string> &prompts) {
     logger_->trace("Embedding prompts");
+//    for (const auto& prompt : prompts) {
+//        std::string first40 = prompt.substr(0, 40);
+//        logger_->info("Embedding {}", first40);
+//    }
     std::shared_lock lock(mutex_);
     if (model_loaded_count_ <= 0)
         throw std::runtime_error("Model::embeddings() called without initialization");
@@ -61,8 +65,14 @@ std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::strin
     auto batch = llama_batch_init(n_batch_, 0, 1);
     std::vector<float> embeddings(inputs.size() * n_embed_, 0);
     process_batches(inputs, batch, embeddings.data());
+    auto result = reshape_embeddings(embeddings, inputs.size());
     logger_->trace("Prompts embedded");
-    return reshape_embeddings(embeddings, inputs.size());
+//    for (const auto& vec : result) {
+//        for (int i = 0; i < std::min(16, static_cast<int>(vec.size())); ++i) {
+//            logger_->info("Embedding value {}: {}", i, vec[i]);
+//        }
+//    }
+    return result;
 }
 
 std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) {

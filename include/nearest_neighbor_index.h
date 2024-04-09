@@ -7,6 +7,7 @@
 #include <shared_mutex>
 #include "abstract/abstract_index.h"
 #include "faiss/IndexFlat.h"
+#include "faiss/IndexIDMap.h"
 #include "faiss/MetricType.h"
 #include "spdlog/logger.h"
 
@@ -19,6 +20,7 @@ public:
     void load(std::filesystem::path indexPath) override;
 private:
     std::shared_ptr<spdlog::logger> logger_;
-    std::unique_ptr<faiss::IndexFlatL2> index_;
     std::shared_mutex mutex_;
+    faiss::IndexIDMap *index_{};
+    faiss::IndexFlatL2 *underlying_index_{};
 };
