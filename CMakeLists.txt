@@ -12,14 +12,14 @@ find_package(llama CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 add_executable(skembed
-        include/model_initialization_holder.h
+        include/model_backend.h
         include/index_of_embeddings.h
         include/abstract/abstract_index.h
-        include/abstract/abstract_model_initialization_holder.h
+        include/abstract/abstract_model_backend.h
         include/abstract/abstract_model.h
         include/model.h
         src/main.cpp
-        src/model_initialization_holder.cpp
+        src/model_backend.cpp
         src/index_of_embeddings.cpp
         src/model.cpp
         include/nearest_neighbor_index.h

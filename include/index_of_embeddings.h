@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "abstract/abstract_model_initialization_holder.h"
+#include "abstract/abstract_model_backend.h"
 #include "abstract/abstract_index.h"
 #include "abstract/abstract_model.h"
 #include "spdlog/logger.h"
@@ -12,7 +12,7 @@
 
 class index_of_embeddings: public abstract_index<faiss::idx_t, std::string, faiss::idx_t> {
 public:
-    index_of_embeddings(std::shared_ptr<abstract_model_initialization_holder> modelInitializer,
+    index_of_embeddings(std::shared_ptr<abstract_model_backend> modelInitializer,
                         std::shared_ptr<abstract_model> model,
                         std::shared_ptr<abstract_index<faiss::idx_t, std::vector<float_t>, faiss::idx_t>> index_delegate,
                         std::shared_ptr<spdlog::logger> logger);
@@ -22,7 +22,7 @@ public:
     void save(std::filesystem::path indexPath) override;
     void load(std::filesystem::path indexPath) override;
 private:
-    std::shared_ptr<abstract_model_initialization_holder> modelInitializationHolder_;
+    std::shared_ptr<abstract_model_backend> modelInitializationHolder_;
     std::shared_ptr<abstract_model> model_;
     std::shared_ptr<abstract_index<faiss::idx_t, std::vector<float_t>, faiss::idx_t>> index_delegate_;
     std::shared_ptr<spdlog::logger> logger_;
