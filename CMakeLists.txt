@@ -13,22 +13,24 @@ find_package(spdlog CONFIG REQUIRED)
 
 add_executable(skembed
         include/abstract/abstract_index.h
-        include/abstract/abstract_model_backend.h
+        include/abstract/abstract_backend.h
         include/abstract/abstract_model.h
         include/abstract/abstract_flat_embed.h
         include/abstract/abstract_embedding_context.h
-        include/model_backend.h
-        include/model.h
+        include/llamacpp_backend.h
+        include/llamacpp_model.h
         include/flat_embed.h
         include/index_of_embeddings.h
         include/nearest_neighbor_index.h
+        include/llamacpp_embedding_context.h
         src/main.cpp
-        src/model_backend.cpp
+        src/llamacpp_backend.cpp
         src/index_of_embeddings.cpp
-        src/model.cpp
+        src/llamacpp_model.cpp
         src/nearest_neighbor_index.cpp
         src/flat_embed.cpp
         src/abstract_flat_embed.cpp
+        src/llamacpp_embedding_context.cpp
 )
 
 target_include_directories(skembed PRIVATE include)
