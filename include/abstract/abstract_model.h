@@ -6,11 +6,10 @@
 
 #include <string>
 #include <vector>
+#include "abstract_embedding_context.h"
 
 class abstract_model {
 public:
     virtual ~abstract_model() = default;
-    virtual void load_model() = 0;
-    virtual void unload_model() = 0;
-    virtual std::vector<std::vector<float_t>> embeddings(const std::vector<std::string> &prompts) = 0;
+    [[nodiscard]] virtual std::shared_ptr<abstract_embedding_context> create_embedding_context() = 0;
 };

@@ -13,17 +13,13 @@
 
 class model : public abstract_model {
 public:
-    void load_model() override;
-
-    void unload_model() override;
-
-    std::vector<std::vector<float_t>> embeddings(const std::vector<std::string> &prompts) override;
-
     model(gpt_params params,
           const std::shared_ptr<abstract_model_backend> &model_backend,
           std::shared_ptr<spdlog::logger> logger);
 
     ~model() override;
+
+    std::shared_ptr<abstract_embedding_context> create_embedding_context() override;
 
 private:
     [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::vector<std::string> &prompts) const;
@@ -41,7 +37,6 @@ private:
     std::shared_ptr<abstract_model_backend> model_backend_;
     std::shared_ptr<spdlog::logger> logger_;
     std::shared_mutex mutex_;
-    int64_t model_loaded_count_ = 0;
     llama_context *ctx_{};
     llama_model *model_{};
     int32_t n_batch_{};
