@@ -4,7 +4,8 @@
 
 #include "model.h"
 
-model::model(gpt_params params, std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)> embed_factory, const std::shared_ptr<abstract_model_backend> &model_backend,
+model::model(gpt_params params, std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)> embed_factory,
+             const std::shared_ptr<abstract_model_backend> &model_backend,
              std::shared_ptr<spdlog::logger> logger) :
         params_(std::move(params)),
         embed_factory_(std::move(embed_factory)),
@@ -36,10 +37,8 @@ model::model(gpt_params params, std::function<std::shared_ptr<abstract_flat_embe
 }
 
 
-
-
-std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_start,
-                                                           const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_end) const {
+std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string>::iterator &prompts_start,
+                                                           const std::vector<std::string>::iterator &prompts_end) const {
     std::vector<std::vector<int32_t>> tokenized_prompts;
     for (auto prompt = prompts_start; prompt != prompts_end; ++prompt) {
         auto tokenized_elem = ::llama_tokenize(ctx_, *prompt, true, false);
@@ -117,8 +116,8 @@ model::~model() {
 }
 
 std::shared_ptr<abstract_flat_embed>
-model::embed(const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_start,
-             const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_end) {
+model::embed(const std::vector<std::string>::iterator &prompts_start,
+             const std::vector<std::string>::iterator &prompts_end) {
     logger_->trace("Embedding prompts");
     std::lock_guard lock(mutex_);
     auto tokenized_prompts = tokenize_and_trim(prompts_start, prompts_end);

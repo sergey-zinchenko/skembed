@@ -23,8 +23,8 @@ public:
 
     ~model() override;
 private:
-    [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_start,
-                                                                      const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_end) const;
+    [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::vector<std::string>::iterator&prompts_start,
+                                                                      const std::vector<std::string>::iterator &prompts_end) const;
 
     [[nodiscard]] std::shared_ptr<abstract_flat_embed>
     process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const;

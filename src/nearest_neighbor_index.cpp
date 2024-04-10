@@ -70,6 +70,7 @@ nearest_neighbor_index::search(std::shared_ptr<abstract_flat_embed> values, fais
     auto result =  reshape_vectors(results_idxes,result_size, static_cast<int>(number_of_extracted_results));
     delete[] results_idxes;
     delete[] result_distances;
+    logger_->info("Querying index done");
     return result;
 }
 
