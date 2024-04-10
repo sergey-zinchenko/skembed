@@ -140,3 +140,38 @@ model::~model() {
 std::shared_ptr<abstract_embedding_context> model::create_embedding_context() {
     return nullptr;
 }
+
+struct llama_model *model::init_model_from_gpt_params(const gpt_params &params) {
+    llama_model *model;
+
+    if (!params.hf_repo.empty() && !params.hf_file.empty()) {
+        model = llama_load_model_from_hf(params.hf_repo.c_str(), params.hf_file.c_str(), params.model.c_str(),
+                                         llama_model_params_from_gpt_params(params));
+    } else if (!params.model_url.empty()) {
+        model = llama_load_model_from_url(params.model_url.c_str(), params.model.c_str(),
+                                          llama_model_params_from_gpt_params(params));
+    } else {
+        model = llama_load_model_from_file(params.model.c_str(), llama_model_params_from_gpt_params(params));
+    }
+
+    if (!model)
+        throw std::runtime_error("Failed to load model " + params.model);
+
+    for (unsigned int i = 0; i < params.lora_adapter.size(); ++i) {
+        const std::string &lora_adapter = std::get<0>(params.lora_adapter[i]);
+        float lora_scale = std::get<1>(params.lora_adapter[i]);
+        int err = llama_model_apply_lora_from_file(model,
+                                                   lora_adapter.c_str(),
+                                                   lora_scale,
+                                                   ((i > 0) || params.lora_base.empty())
+                                                   ? nullptr
+                                                   : params.lora_base.c_str(),
+                                                   params.n_threads);
+        if (err != 0) {
+            llama_free_model(model);
+            throw std::runtime_error("Failed to apply lora adapter");
+        }
+    }
+
+    return model;
+}

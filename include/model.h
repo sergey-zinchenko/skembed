@@ -29,6 +29,8 @@ private:
 
     [[nodiscard]] std::vector<std::vector<float_t>> reshape_embeddings(const std::vector<float> &flat_embeddings) const;
 
+    [[nodiscard]] static struct llama_model *init_model_from_gpt_params(const gpt_params &params);
+
     void batch_decode(llama_batch &batch, float *output) const;
 
     static void batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens, int seq_id);
