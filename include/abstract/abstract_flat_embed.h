@@ -32,8 +32,9 @@ public:
         [[nodiscard]] value_type operator*();
 
     private:
-        ptrdiff_t row_size_, last_row_offset_, offset_;
-        std::shared_ptr<float_t[]> data_;
+        const ptrdiff_t row_size_, last_row_offset_;
+        ptrdiff_t offset_;
+        const std::shared_ptr<float_t[]> data_;
     };
 
     [[nodiscard]] virtual iterator begin() const = 0;

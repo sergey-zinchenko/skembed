@@ -12,6 +12,6 @@ public:
     virtual ~abstract_embedding_context() = default;
 
     [[nodiscard]] virtual std::shared_ptr<abstract_flat_embed>
-    embed(std::vector<std::string>::iterator start, std::vector<std::string>::iterator end) = 0;
+    embed(const std::vector<std::string>::iterator &start, const std::vector<std::string>::iterator &end) = 0;
 };
 

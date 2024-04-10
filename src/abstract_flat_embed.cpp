@@ -5,8 +5,8 @@
 #include "abstract/abstract_flat_embed.h"
 
 
-abstract_flat_embed::iterator::iterator(std::shared_ptr<float_t[]> data, ptrdiff_t row_size, ptrdiff_t last_row_offset,
-                                        ptrdiff_t offset) :
+abstract_flat_embed::iterator::iterator(std::shared_ptr<float_t[]> data, const ptrdiff_t row_size, const ptrdiff_t last_row_offset,
+                                        const ptrdiff_t offset) :
         data_(std::move(data)),
         row_size_(row_size),
         last_row_offset_(last_row_offset),
