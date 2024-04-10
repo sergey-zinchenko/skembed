@@ -19,7 +19,7 @@ public:
         using reference = value_type &;
 
         iterator(std::shared_ptr<float_t[]> data, ptrdiff_t row_size, ptrdiff_t last_row_offset,
-                 ptrdiff_t offset) noexcept;
+                 ptrdiff_t offset);
 
         iterator(const iterator &other) = default;
 
