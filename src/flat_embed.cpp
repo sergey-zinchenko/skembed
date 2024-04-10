@@ -5,24 +5,32 @@
 
 #include "flat_embed.h"
 
-template<size_t row_size_, size_t rows_>
-abstract_flat_embed::iterator flat_embed<row_size_, rows_>::begin() const {
-    return iterator(data_, row_size(), last_row_offset(), 0);
+
+abstract_flat_embed::iterator flat_embed::begin() const {
+    return {data_, static_cast<ptrdiff_t>(row_size()),
+            static_cast<ptrdiff_t>(last_row_offset()), 0};
 }
 
-template<size_t row_size_, size_t rows_>
-constexpr size_t flat_embed<row_size_, rows_>::last_row_offset() { return (rows_ - 1) * row_size_; }
 
-template<size_t row_size_, size_t rows_>
-size_t flat_embed<row_size_, rows_>::row_size() const { return row_size_; }
+size_t flat_embed::last_row_offset() const { return (rows_ - 1) * row_size_; }
 
-template<size_t row_size_, size_t rows_>
-float_t *flat_embed<row_size_, rows_>::data() const { return data_.get(); }
 
-template<size_t row_size_, size_t rows_>
-abstract_flat_embed::iterator flat_embed<row_size_, rows_>::end() const {
-    return iterator(data_, row_size(), last_row_offset(), last_row_offset());
+size_t flat_embed::row_size() const { return row_size_; }
+
+
+float_t *flat_embed::data() const { return data_.get(); }
+
+
+abstract_flat_embed::iterator flat_embed::end() const {
+    return {data_,
+            static_cast<ptrdiff_t>(row_size()),
+            static_cast<ptrdiff_t>(last_row_offset()),
+            static_cast<ptrdiff_t>(last_row_offset())};
 }
 
-template<size_t row_size_, size_t rows_>
-size_t flat_embed<row_size_, rows_>::rows() const { return rows_; }
+
+size_t flat_embed::rows() const { return rows_; }
+
+flat_embed::flat_embed(size_t rows, size_t row_size) :
+        rows_(rows), row_size_(row_size) {
+}

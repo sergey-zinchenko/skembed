@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <shared_mutex>
+#include <mutex>
 #include "abstract/abstract_model.h"
 #include "abstract/abstract_model_backend.h"
 #include "llama/llama.h"
@@ -13,35 +13,31 @@
 
 class model : public abstract_model {
 public:
-    void load_model() override;
-
-    void unload_model() override;
-
-    std::vector<std::vector<float_t>> embeddings(const std::vector<std::string> &prompts) override;
+    [[nodiscard]] std::shared_ptr<abstract_flat_embed>
+    embed(const std::vector<std::string>::iterator &prompts_start, const std::vector<std::string>::iterator &prompts_end) override;
 
     model(gpt_params params,
+          std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)> embed_factory,
           const std::shared_ptr<abstract_model_backend> &model_backend,
           std::shared_ptr<spdlog::logger> logger);
 
     ~model() override;
-
 private:
-    [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::vector<std::string> &prompts) const;
+    [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_start,
+                                                                      const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_end) const;
 
-    [[nodiscard]] std::vector<float_t>
+    [[nodiscard]] std::shared_ptr<abstract_flat_embed>
     process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const;
-
-    [[nodiscard]] std::vector<std::vector<float_t>> reshape_embeddings(const std::vector<float> &flat_embeddings) const;
 
     void batch_decode(llama_batch &batch, float *output) const;
 
     static void batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens, int seq_id);
 
     gpt_params params_;
+    std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)> embed_factory_;
     std::shared_ptr<abstract_model_backend> model_backend_;
     std::shared_ptr<spdlog::logger> logger_;
-    std::shared_mutex mutex_;
-    int64_t model_loaded_count_ = 0;
+    std::mutex mutex_;
     llama_context *ctx_{};
     llama_model *model_{};
     int32_t n_batch_{};

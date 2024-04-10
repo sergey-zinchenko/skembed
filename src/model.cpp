@@ -4,18 +4,13 @@
 
 #include "model.h"
 
-model::model(gpt_params params, const std::shared_ptr<abstract_model_backend> &model_backend,
+model::model(gpt_params params, std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)> embed_factory, const std::shared_ptr<abstract_model_backend> &model_backend,
              std::shared_ptr<spdlog::logger> logger) :
         params_(std::move(params)),
+        embed_factory_(std::move(embed_factory)),
         model_backend_(model_backend),
         logger_(std::move(logger)) {
-}
-
-void model::load_model() {
     logger_->trace("Loading model");
-    std::unique_lock lock(mutex_);
-    if (model_loaded_count_++ > 0)
-        return;
     params_.embedding = true;
     params_.n_ubatch = params_.n_batch;
     std::tie(model_, ctx_) = llama_init_from_gpt_params(params_);
@@ -37,44 +32,17 @@ void model::load_model() {
     }
     n_embed_ = llama_n_embd(model_);
     eos_token_ = llama_token_eos(model_);
-    logger_->trace("Model loaded");
+    logger_->info("Model loaded");
 }
 
-void model::unload_model() {
-    logger_->trace("Unloading model");
-    std::unique_lock lock(mutex_);
-    if (model_loaded_count_ <= 0)
-        throw std::runtime_error("Model::unload_model() called without initialization");
-    if (--model_loaded_count_ > 0) {
-        logger_->trace("Model still in use");
-        return;
-    }
-    llama_free(ctx_);
-    llama_free_model(model_);
-    logger_->trace("Model unloaded");
-}
 
-std::vector<std::vector<float_t>> model::embeddings(const std::vector<std::string> &prompts) {
-    logger_->trace("Embedding {} prompts", prompts.size());
-    std::shared_lock lock(mutex_);
-    if (model_loaded_count_ <= 0)
-        throw std::runtime_error("Model::embeddings() called without initialization");
-    auto tokenized_prompts = tokenize_and_trim(prompts);
-    auto flat_embeddings = process_tokenized_prompts(tokenized_prompts);
-    auto embeddings = reshape_embeddings(flat_embeddings);
-    logger_->trace("Prompts embedded");
-//    for (const auto& vec : result) {
-//        for (int i = 0; i < std::min(16, static_cast<int>(vec.size())); ++i) {
-//            logger_->info("Embedding value {}: {}", i, vec[i]);
-//        }
-//    }
-    return embeddings;
-}
 
-std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) const {
+
+std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_start,
+                                                           const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_end) const {
     std::vector<std::vector<int32_t>> tokenized_prompts;
-    for (const auto &prompt: prompts) {
-        auto tokenized_elem = ::llama_tokenize(ctx_, prompt, true, false);
+    for (auto prompt = prompts_start; prompt != prompts_end; ++prompt) {
+        auto tokenized_elem = ::llama_tokenize(ctx_, *prompt, true, false);
         if (tokenized_elem.size() > n_batch_) {
             throw std::runtime_error(
                     "Number of tokens in input line exceeds batch size, increase batch size and re-run");
@@ -87,11 +55,11 @@ std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std
     return tokenized_prompts;
 }
 
-std::vector<float_t>
+std::shared_ptr<abstract_flat_embed>
 model::process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const {
-    std::vector<float_t> embeddings(tokenized_prompts.size() * n_embed_, 0);
+    auto embeddings = embed_factory_(n_embed_, tokenized_prompts.size());
     auto batch = llama_batch_init(n_batch_, 0, 1);
-    auto p_emb = embeddings.data();
+    auto p_emb = embeddings->data();
     auto p = 0, s = 0;
     for (const auto &tokenized_prompt: tokenized_prompts) {
         if (batch.n_tokens + tokenized_prompt.size() > n_batch_) {
@@ -106,14 +74,6 @@ model::process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokeni
     llama_batch_clear(batch);
     llama_batch_free(batch);
     return embeddings;
-}
-
-std::vector<std::vector<float_t>> model::reshape_embeddings(const std::vector<float> &flat_embeddings) const {
-    std::vector<std::vector<float_t>> result;
-    for (auto i = 0; i < flat_embeddings.size(); i += n_embed_) {
-        result.emplace_back(flat_embeddings.begin() + i, flat_embeddings.begin() + i + n_embed_);
-    }
-    return result;
 }
 
 void model::batch_decode(llama_batch &batch, float *output) const {
@@ -152,10 +112,17 @@ void model::batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens
 }
 
 model::~model() {
-    std::unique_lock lock(mutex_);
-    if (model_loaded_count_ <= 0)
-        return;
-    model_loaded_count_ = 0;
     llama_free(ctx_);
     llama_free_model(model_);
+}
+
+std::shared_ptr<abstract_flat_embed>
+model::embed(const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_start,
+             const std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::string>>> &prompts_end) {
+    logger_->trace("Embedding prompts");
+    std::lock_guard lock(mutex_);
+    auto tokenized_prompts = tokenize_and_trim(prompts_start, prompts_end);
+    auto embeddings = process_tokenized_prompts(tokenized_prompts);
+    logger_->debug("Prompts embedded");
+    return embeddings;
 }

@@ -6,7 +6,6 @@
 
 #include "abstract/abstract_flat_embed.h"
 
-template<size_t row_size_, size_t rows_>
 class flat_embed : public abstract_flat_embed {
 public:
     [[nodiscard]] iterator begin() const override;
@@ -19,8 +18,11 @@ public:
 
     [[nodiscard]] size_t row_size() const override;
 
-private:
-    static constexpr size_t last_row_offset();
+    flat_embed(size_t rows, size_t row_size);
 
-    std::shared_ptr<float_t[]> data_ = std::make_shared<float_t[]>(row_size() * rows_);
+private:
+    [[nodiscard]] inline size_t last_row_offset() const;
+
+    size_t rows_, row_size_;
+    std::shared_ptr<float_t[]> data_ = std::make_shared<float_t[]>(row_size_ * rows_);
 };
