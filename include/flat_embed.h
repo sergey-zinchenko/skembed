@@ -22,5 +22,5 @@ public:
 private:
     static constexpr size_t last_row_offset();
 
-    std::shared_ptr<float_t[]> data_ = std::make_shared<float_t[]>(row_size() * rows_);
+    std::shared_ptr<float_t[]> data_ = std::make_shared<float_t[]>(row_size_ * rows_);
 };
