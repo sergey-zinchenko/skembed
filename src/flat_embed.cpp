@@ -23,3 +23,6 @@ template<size_t row_size_, size_t rows_>
 abstract_flat_embed::iterator flat_embed<row_size_, rows_>::end() const {
     return iterator(data_, row_size(), last_row_offset(), last_row_offset());
 }
+
+template<size_t row_size_, size_t rows_>
+size_t flat_embed<row_size_, rows_>::rows() const { return rows_; }

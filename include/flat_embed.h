@@ -15,12 +15,12 @@ public:
 
     [[nodiscard]] float_t *data() const override;
 
-    [[nodiscard]] size_t rows() const override { return rows_; }
+    [[nodiscard]] size_t rows() const override;
 
     [[nodiscard]] size_t row_size() const override;
 
 private:
-    [[nodiscard]] static constexpr size_t last_row_offset();
+    static constexpr size_t last_row_offset();
 
     std::shared_ptr<float_t[]> data_ = std::make_shared<float_t[]>(row_size() * rows_);
 };
