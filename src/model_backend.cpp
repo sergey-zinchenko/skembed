@@ -4,26 +4,17 @@
 
 #include "model_backend.h"
 
-#include <utility>
-
-void model_backend::initialize() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (initialized_count_++ > 1)
-        return;
+model_backend::model_backend(const gpt_params &params, std::shared_ptr<spdlog::logger> logger) :
+        logger_(std::move(logger)) {
+    logger_->trace("Initializing model backend and setting up numa");
     llama_backend_init();
-    llama_numa_init(params_.numa);
+    llama_numa_init(params.numa);
+    logger_->trace("Model backend initialized");
 }
 
-void model_backend::finalize() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (initialized_count_ <= 0)
-        throw std::runtime_error("ModelInitializationHolder::finalize() called without initialization");
-    if (initialized_count_-- > 0)
-        return;
+model_backend::~model_backend() {
+    logger_->trace("Freeing model backend");
     llama_backend_free();
+    logger_->trace("Model backend freed");
 }
-
-model_backend::model_backend(gpt_params params, std::shared_ptr<spdlog::logger> logger) :
-        params_(std::move(params)),
-        logger_(std::move(logger)) {}
 

@@ -17,15 +17,12 @@ void index_of_embeddings::load(std::filesystem::path indexPath) {
     index_delegate_->load(indexPath);
 }
 
-index_of_embeddings::index_of_embeddings(std::shared_ptr<abstract_model_backend> modelInitializer,
-                                         std::shared_ptr<abstract_model> model,
+index_of_embeddings::index_of_embeddings(std::shared_ptr<abstract_model> model,
                                          std::shared_ptr<abstract_index<faiss::idx_t, std::vector<float_t>, faiss::idx_t>> index_delegate,
                                          std::shared_ptr<spdlog::logger> logger) :
-        modelInitializationHolder_(std::move(modelInitializer)),
         model_(std::move(model)),
         index_delegate_(std::move(index_delegate)),
         logger_(std::move(logger)) {
-    modelInitializationHolder_->initialize();
     model_->load_model();
 }
 
@@ -36,6 +33,5 @@ std::vector<faiss::idx_t> index_of_embeddings::search(std::string value, faiss::
 
 index_of_embeddings::~index_of_embeddings() {
     model_->unload_model();
-    modelInitializationHolder_->finalize();
 }
 

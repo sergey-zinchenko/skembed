@@ -4,8 +4,10 @@
 
 #include "model.h"
 
-model::model(gpt_params params, std::shared_ptr<spdlog::logger> logger) :
+model::model(gpt_params params, const std::shared_ptr<abstract_model_backend> &model_backend,
+             std::shared_ptr<spdlog::logger> logger) :
         params_(std::move(params)),
+        model_backend_(model_backend),
         logger_(std::move(logger)) {
 }
 

@@ -7,6 +7,4 @@
 class abstract_model_backend {
 public:
     virtual ~abstract_model_backend() = default;
-    virtual void initialize() = 0;
-    virtual void finalize() = 0;
 };
