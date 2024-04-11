@@ -5,6 +5,7 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
 
 template<typename KeyType, typename ValueType, typename ResultSizeType>
 class abstract_index {
