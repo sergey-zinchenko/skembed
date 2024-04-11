@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
                         };
                     }
             ),
-            boost::di::bind<abstract_model>().to<model>().in(di::singleton),
+            di::bind<abstract_model>().to<model>().in(di::singleton),
             di::bind<abstract_index<faiss::idx_t, std::shared_ptr<abstract_flat_embed>, faiss::idx_t>>().to<nearest_neighbor_index>(),
             di::bind<gpt_params>().to(params),
             di::bind<spdlog::logger>().to(logger)
