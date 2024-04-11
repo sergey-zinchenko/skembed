@@ -7,6 +7,7 @@
 #include <iterator>
 #include <memory>
 #include <vector>
+#include <cmath>
 
 class abstract_flat_embed {
 public:
