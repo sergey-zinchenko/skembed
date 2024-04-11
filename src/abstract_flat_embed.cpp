@@ -5,7 +5,7 @@
 #include "abstract/abstract_flat_embed.h"
 
 
-abstract_flat_embed::iterator::iterator(std::shared_ptr<float_t[]> data, const ptrdiff_t row_size, const ptrdiff_t last_row_offset,
+abstract_flat_embed::iterator::iterator(std::shared_ptr<float_t> data, const ptrdiff_t row_size, const ptrdiff_t last_row_offset,
                                         const ptrdiff_t offset) :
         data_(std::move(data)),
         row_size_(row_size),
@@ -29,6 +29,6 @@ bool abstract_flat_embed::iterator::operator!=(const abstract_flat_embed::iterat
 }
 
 abstract_flat_embed::iterator::value_type abstract_flat_embed::iterator::operator*() {
-    return std::make_shared<std::vector<float_t>>(row_size_, data_[offset_ + row_size_]);
+    return std::make_shared<std::vector<float_t>>(row_size_, data_.get()[offset_ + row_size_]);
 }
 

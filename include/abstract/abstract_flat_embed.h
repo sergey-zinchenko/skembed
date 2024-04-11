@@ -19,7 +19,7 @@ public:
         using pointer = value_type *;
         using reference = value_type &;
 
-        iterator(std::shared_ptr<float_t[]> data, ptrdiff_t row_size, ptrdiff_t last_row_offset,
+        iterator(std::shared_ptr<float_t> data, ptrdiff_t row_size, ptrdiff_t last_row_offset,
                  ptrdiff_t offset);
 
         iterator(const iterator &other) = default;
@@ -35,7 +35,7 @@ public:
     private:
         const ptrdiff_t row_size_, last_row_offset_;
         ptrdiff_t offset_;
-        const std::shared_ptr<float_t[]> data_;
+        const std::shared_ptr<float_t> data_;
     };
 
     [[nodiscard]] virtual iterator begin() const = 0;
