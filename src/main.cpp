@@ -1,3 +1,9 @@
+#ifdef _WIN32
+
+#include <windows.h>
+
+#endif
+
 #include "index_of_embeddings.h"
 #include "model.h"
 #include "model_backend.h"
@@ -22,14 +28,16 @@ std::shared_ptr<spdlog::logger> create_logger() {
 
     auto logger = std::make_shared<spdlog::logger>("multi_sink",
                                                    std::initializer_list<spdlog::sink_ptr>{console_sink, file_sink});
-    logger->set_level(spdlog::level::trace);
+    logger->set_level(spdlog::level::warn);
     return logger;
 }
 
 int main(int argc, char **argv) {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+#endif
 
     gpt_params params;
-
 
     if (!gpt_params_parse(argc, argv, params)) {
         return 1;
@@ -52,30 +60,49 @@ int main(int argc, char **argv) {
             di::bind<spdlog::logger>().to(logger)
     );
     try {
+        std::unordered_map<faiss::idx_t, std::string> input_texts = {
+                {1, "Космические корабли бараздят просторы большого театра"},
+                {2, "Двигатель внутреннего сгорания сгорает изнутри"},
+                {3, "Солнечный ветер толкает корабль к северному полюсу"},
+                {4, "Если бы у рыбы были блохи то это была бы собака"},
+                {5, "Чтобы приготовить яишницу надо найти гнездо курицы"},
+                {6, "Мотыга капает землю лучше чем лопата"},
+                {7, "Хуанг сказал что скоро видеокарты заменять программистов"}
+        };
+
+        std::vector<faiss::idx_t> keys;
+        std::vector<std::string> values;
+        for (const auto &pair: input_texts) {
+            keys.push_back(pair.first);
+            values.push_back(pair.second);
+        }
+
         auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
-        index->add({1, 2, 3, 4, 5, 6, 7}, {"Космические корабли бараздят просторы большого театра",
-                                           "Двигатель внутреннего сгорания сгорает изнутри",
-                                           "Солнечный ветер толкает корабль к северному полюсу",
-                                           "Если бы у рыбы были блохи то это была бы собака",
-                                           "Чтобы приготовить яишницу надо найти гнездо курицы",
-                                           "Мотыга капает землю лучше чем лопата",
-                                           "Хуанг сказал что скоро видеокарты заменять программистов"});
+        index->add(keys, values);
+
         index->save("logs/index.idx");
         index->load("logs/index.idx");
-        auto r1 = index->search({"Приготовление яишничы на костре - хорошая прилюдия к завтраку",
-                                 "Nvidia - компания которая проивзодит ускорители",
-                                 "Анекдот про блох рассказал студент на экзамене по зоологии",
-                                 "В фильме про шурика корабли бараздили просторы чего то там",
-                                 "Эксковатор применяют для рытья котлованов в наши дня",
-                                 "У субару опозитный мотор",
-                                 "Вояджер вылетел за пределы солнечной системы"}, 2);
-        for (const auto &v : r1) {
-            for (auto i : v) {
-                std::cout << i << " ";
-            }
-            std::cout << std::endl;
 
+        std::unordered_map<std::string, int> search_texts = {
+                {"Приготовление яишничы на костре - хорошая прилюдия к завтраку", 1},
+                {"Nvidia - компания которая проивзодит ускорители",               1},
+                {"Анекдот про блох рассказал студент на экзамене по зоологии",    1},
+                {"В фильме про шурика корабли бараздили просторы чего то там",    1},
+                {"Эксковатор применяют для рытья котлованов в наши дня",          1},
+                {"У субару опозитный мотор",                                      1},
+                {"Вояджер вылетел за пределы солнечной системы",                  1}
+        };
+
+        for (const auto &pair: search_texts) {
+            auto r1 = index->search({pair.first}, pair.second);
+            for (const auto &result: r1) {
+                for (const auto &i: result) {
+                    logger->warn("{} = {}", pair.first, input_texts[i]);
+                }
+            }
         }
+
+
     }
     catch (const std::exception &e) {
         logger->error(e.what());
