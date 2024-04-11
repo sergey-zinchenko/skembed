@@ -15,6 +15,7 @@
       ]
     },
     "bext-di",
-    "spdlog"
+    "spdlog",
+    "zxorm"
   ]
 }

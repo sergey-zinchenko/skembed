@@ -10,6 +10,7 @@ project(skembed)
 find_package(faiss CONFIG REQUIRED)
 find_package(Llama CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(zxorm CONFIG REQUIRED)
 find_path(BEXT_DI_INCLUDE_DIRS "boost/di.hpp")
 
 add_executable(skembed
@@ -34,4 +35,4 @@ add_executable(skembed
 
 target_include_directories(skembed PRIVATE include ${BEXT_DI_INCLUDE_DIRS})
 
-target_link_libraries(skembed PRIVATE faiss_avx2 llama_common spdlog::spdlog)
+target_link_libraries(skembed PRIVATE faiss_avx2 llama_common spdlog::spdlog zxorm::zxorm)
