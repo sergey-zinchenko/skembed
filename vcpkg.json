@@ -15,7 +15,6 @@
       ]
     },
     "bext-di",
-    "spdlog",
-    "openblas"
+    "spdlog"
   ]
 }
