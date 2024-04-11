@@ -8,8 +8,9 @@ set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems
 project(skembed)
 
 find_package(faiss CONFIG REQUIRED)
-find_package(llama CONFIG REQUIRED)
+find_package(Llama CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_path(BEXT_DI_INCLUDE_DIRS "boost/di.hpp")
 
 add_executable(skembed
         include/abstract/abstract_index.h
@@ -31,6 +32,6 @@ add_executable(skembed
         src/abstract_flat_embed.cpp
 )
 
-target_include_directories(skembed PRIVATE include)
+target_include_directories(skembed PRIVATE include ${BEXT_DI_INCLUDE_DIRS})
 
 target_link_libraries(skembed PRIVATE faiss_avx2 llama_common spdlog::spdlog)

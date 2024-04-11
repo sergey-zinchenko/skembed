@@ -111,8 +111,10 @@ void model::batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens
 }
 
 model::~model() {
+    logger_->trace("Freeing model");
     llama_free(ctx_);
     llama_free_model(model_);
+    logger_->info("Model freed");
 }
 
 std::shared_ptr<abstract_flat_embed>

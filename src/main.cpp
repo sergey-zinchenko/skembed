@@ -28,7 +28,7 @@ std::shared_ptr<spdlog::logger> create_logger() {
 
     auto logger = std::make_shared<spdlog::logger>("multi_sink",
                                                    std::initializer_list<spdlog::sink_ptr>{console_sink, file_sink});
-    logger->set_level(spdlog::level::warn);
+    logger->set_level(spdlog::level::info);
     return logger;
 }
 
@@ -60,6 +60,8 @@ int main(int argc, char **argv) {
             di::bind<spdlog::logger>().to(logger)
     );
     try {
+        auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
+
         std::unordered_map<faiss::idx_t, std::string> input_texts = {
                 {1, "Космические корабли бараздят просторы большого театра"},
                 {2, "Двигатель внутреннего сгорания сгорает изнутри"},
@@ -76,12 +78,12 @@ int main(int argc, char **argv) {
             keys.push_back(pair.first);
             values.push_back(pair.second);
         }
-
-        auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
         index->add(keys, values);
+
 
         index->save("logs/index.idx");
         index->load("logs/index.idx");
+
 
         std::vector<std::string> search_texts = {
                 "Приготовление яишничы на костре - хорошая прилюдия к завтраку",
@@ -100,8 +102,6 @@ int main(int argc, char **argv) {
                 logger->warn("{} = {}", search_texts[j], input_texts[i]);
             }
         }
-
-
     }
     catch (const std::exception &e) {
         logger->error(e.what());
