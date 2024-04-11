@@ -83,22 +83,21 @@ int main(int argc, char **argv) {
         index->save("logs/index.idx");
         index->load("logs/index.idx");
 
-        std::unordered_map<std::string, int> search_texts = {
-                {"Приготовление яишничы на костре - хорошая прилюдия к завтраку", 1},
-                {"Nvidia - компания которая проивзодит ускорители",               1},
-                {"Анекдот про блох рассказал студент на экзамене по зоологии",    1},
-                {"В фильме про шурика корабли бараздили просторы чего то там",    1},
-                {"Эксковатор применяют для рытья котлованов в наши дня",          1},
-                {"У субару опозитный мотор",                                      1},
-                {"Вояджер вылетел за пределы солнечной системы",                  1}
+        std::vector<std::string> search_texts = {
+                "Приготовление яишничы на костре - хорошая прилюдия к завтраку",
+                "Nvidia - компания которая проивзодит ускорители",
+                "Анекдот про блох рассказал студент на экзамене по зоологии",
+                "В фильме про шурика корабли бараздили просторы чего то там",
+                "Эксковатор применяют для рытья котлованов в наши дня",
+                "У субару опозитный мотор",
+                "Вояджер вылетел за пределы солнечной системы"
         };
 
-        for (const auto &pair: search_texts) {
-            auto r1 = index->search({pair.first}, pair.second);
-            for (const auto &result: r1) {
-                for (const auto &i: result) {
-                    logger->warn("{} = {}", pair.first, input_texts[i]);
-                }
+        auto r1 = index->search(search_texts, 1);
+        for (size_t j = 0; j < r1.size(); ++j) {
+            const auto &result = r1[j];
+            for (const auto &i: result) {
+                logger->warn("{} = {}", search_texts[j], input_texts[i]);
             }
         }
 
