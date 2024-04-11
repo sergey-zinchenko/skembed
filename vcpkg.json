@@ -12,6 +12,7 @@
       "name": "llama",
       "default-features": true,
       "features": [
+        "openblas"
       ]
     },
     "bext-di",

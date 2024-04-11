@@ -13,8 +13,15 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "flat_embed.h"
+#include "zxorm/orm/table.hpp"
+#include "zxorm/orm/connection.hpp"
 
 #include <boost/di.hpp>
+
+struct Object {
+    int id = 0;
+    std::string some_text;
+};
 
 namespace di = boost::di;
 
@@ -32,6 +39,11 @@ std::shared_ptr<spdlog::logger> create_logger() {
     return logger;
 }
 
+
+using ObjectTable = zxorm::Table<"objects", Object,
+        zxorm::Column<"id", &Object::id, zxorm::PrimaryKey<>>,
+        zxorm::Column<"some_text", &Object::some_text>>;
+
 int main(int argc, char **argv) {
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
@@ -44,6 +56,22 @@ int main(int argc, char **argv) {
     }
 
     auto logger = create_logger();
+
+    try {
+        auto connection = zxorm::Connection<ObjectTable>("./logs1/data.db");
+        connection.create_tables();
+        connection.insert_many_records(std::vector<Object>{
+                {.some_text = "This is my data"},
+                {.some_text = "Wow it is so important"},
+                {.some_text = "Better make sure it is saved"},
+                {.some_text = "!"},
+        });
+        std::optional<Object> record = connection.find_record<Object>(4);
+        assert(record.has_value());
+        assert(record.value().some_text == "!");
+    } catch (const zxorm::ConnectionError &e) {
+        logger->critical(e.what());
+    }
 
     auto injector = di::make_injector(
             di::bind<abstract_model_backend>().to<model_backend>().in(di::singleton),
