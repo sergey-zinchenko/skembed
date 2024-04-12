@@ -18,9 +18,14 @@
 
 #include <boost/di.hpp>
 
-struct Object {
+struct skill {
     int id = 0;
-    std::string some_text;
+    std::string name;
+    std::string parent_skill_name;
+    int node_level {};
+    std::string aliases;
+    std::string path;
+    std::string tags;
 };
 
 namespace di = boost::di;
@@ -40,9 +45,14 @@ std::shared_ptr<spdlog::logger> create_logger() {
 }
 
 
-using ObjectTable = zxorm::Table<"objects", Object,
-        zxorm::Column<"id", &Object::id, zxorm::PrimaryKey<>>,
-        zxorm::Column<"some_text", &Object::some_text>>;
+using SkillsTable = zxorm::Table<"Skills", skill,
+        zxorm::Column<"id", &skill::id, zxorm::PrimaryKey<>>,
+        zxorm::Column<"name", &skill::name>,
+        zxorm::Column<"parent_skill_name", &skill::parent_skill_name>,
+        zxorm::Column<"node_level", &skill::node_level>,
+        zxorm::Column<"aliases", &skill::aliases>,
+        zxorm::Column<"path", &skill::path>,
+        zxorm::Column<"tags", &skill::tags>>;
 
 int main(int argc, char **argv) {
 #ifdef _WIN32
@@ -58,17 +68,12 @@ int main(int argc, char **argv) {
     auto logger = create_logger();
 
     try {
-        auto connection = zxorm::Connection<ObjectTable>("./logs1/data.db");
-        connection.create_tables();
-        connection.insert_many_records(std::vector<Object>{
-                {.some_text = "This is my data"},
-                {.some_text = "Wow it is so important"},
-                {.some_text = "Better make sure it is saved"},
-                {.some_text = "!"},
-        });
-        std::optional<Object> record = connection.find_record<Object>(4);
-        assert(record.has_value());
-        assert(record.value().some_text == "!");
+        auto connection = zxorm::Connection<SkillsTable>("C:/Users/sergei/Downloads/skills.sqlite");
+        auto skills = connection.select_query<SkillsTable>().many().exec();
+        for (const auto &skill: skills) {
+            logger->info("id = {}, name = {}, path = {}", skill.id, skill.name, skill.path);
+        }
+
     } catch (const zxorm::ConnectionError &e) {
         logger->critical(e.what());
     }
