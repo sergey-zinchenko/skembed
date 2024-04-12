@@ -14,7 +14,7 @@ nearest_neighbor_index::nearest_neighbor_index(std::shared_ptr<spdlog::logger> l
 void nearest_neighbor_index::save(std::filesystem::path indexPath) {
     logger_->trace("Saving index to {}", indexPath.string());
     std::shared_lock lock(mutex_);
-    faiss::write_index(index_, indexPath.string().c_str());
+    faiss::write_index(index_.get(), indexPath.string().c_str());
     logger_->trace("Index saved to {}", indexPath.string());
 }
 
@@ -32,8 +32,7 @@ void nearest_neighbor_index::load(std::filesystem::path indexPath) {
         delete p_index;
         throw std::runtime_error("Failed to cast underlying index to IndexFlatL2");
     }
-    index_ = p_index_id_map;
-    underlying_index_ = index_flat_l2;
+    index_ = std::unique_ptr<faiss::IndexIDMap>(p_index_id_map);
     logger_->trace("Index loaded with {} indexed vectors of {} dimensions", index_->ntotal, index_->d);
 }
 
@@ -48,8 +47,8 @@ void nearest_neighbor_index::add(std::vector<faiss::idx_t> keys, std::shared_ptr
         if (index_->d != values->row_size())
             throw std::runtime_error("Index dimension is different from the dimension of the added vectors");
     } else {
-        underlying_index_ = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(values->row_size()));
-        index_ = new faiss::IndexIDMap(underlying_index_);
+        auto underlying_index_ = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(values->row_size()));
+        index_ = std::make_unique<faiss::IndexIDMap>(underlying_index_);
     }
     index_->add_with_ids(static_cast<faiss::idx_t>(values->rows()), values->data(), keys.data());
     logger_->trace("Added {} vectors to index. New index size is {}", keys.size(), index_->ntotal);

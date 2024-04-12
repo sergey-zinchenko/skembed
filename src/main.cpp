@@ -27,7 +27,7 @@ namespace di = boost::di;
 
 std::shared_ptr<spdlog::logger> create_logger() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    console_sink->set_level(spdlog::level::trace);
+    console_sink->set_level(spdlog::level::debug);
     console_sink->set_pattern("[%^%l%$] %v");
 
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/multisink.txt", true);
@@ -35,7 +35,7 @@ std::shared_ptr<spdlog::logger> create_logger() {
 
     auto logger = std::make_shared<spdlog::logger>("multi_sink",
                                                    std::initializer_list<spdlog::sink_ptr>{console_sink, file_sink});
-    logger->set_level(spdlog::level::info);
+    logger->set_level(spdlog::level::trace);
     return logger;
 }
 

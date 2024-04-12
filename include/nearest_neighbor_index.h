@@ -23,6 +23,5 @@ private:
     static std::vector<std::vector<faiss::idx_t>> reshape_vectors(const faiss::idx_t* flat, size_t total, int row_size);
     std::shared_ptr<spdlog::logger> logger_;
     std::shared_mutex mutex_;
-    faiss::IndexIDMap *index_{};
-    faiss::IndexFlatL2 *underlying_index_{};
+    std::unique_ptr<faiss::IndexIDMap> index_{};
 };
