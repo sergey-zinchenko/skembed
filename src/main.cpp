@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
                               .order_by < SkillsTable::field_t < "id" >> (zxorm::order_t::ASC)
                 .where_many( SkillsTable::field_t<"path">().like("%.NET%") || SkillsTable::field_t<"path">().like("%C#%"))
                 .exec().to_vector();
-        if (skills.size() == 0) {
+        if (skills.empty()) {
             logger->error("No skills found");
             return 1;
         }
