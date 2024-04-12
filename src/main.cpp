@@ -17,6 +17,7 @@
 #include "zxorm/orm/connection.hpp"
 
 #include <boost/di.hpp>
+#include <ranges>
 
 struct skill {
     int id = 0;
@@ -87,30 +88,25 @@ int main(int argc, char **argv) {
         logger->info("Creating index and db connection");
         auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
         auto connection = zxorm::Connection<SkillsTable>("C:/Users/sergei/Downloads/skills.sqlite");
-        logger->info("Counting skills");
-        auto clause = SkillsTable::field_t<"path">().like("%.NET%") || SkillsTable::field_t<"path">().like("%C#%");
-        auto total_skills_count = connection.select_query<zxorm::CountAll, zxorm::From<SkillsTable>>()
-                .where_one(clause)
-                .exec();
-        if (!total_skills_count.has_value()) {
-            logger->error("Failed to count skills");
+        logger->info("Querying skills");
+        auto skills = connection.select_query<SkillsTable>()
+                              .order_by < SkillsTable::field_t < "id" >> (zxorm::order_t::ASC)
+                .where_many( SkillsTable::field_t<"path">().like("%.NET%") || SkillsTable::field_t<"path">().like("%C#%"))
+                .exec().to_vector();
+        if (skills.size() == 0) {
+            logger->error("No skills found");
             return 1;
         }
-        logger->info("Skills count = {}", total_skills_count.value());
+        logger->info("Skills count = {}", skills.size());
 
-        auto batch_size = total_skills_count.value() / 10;
+        auto batch_size = skills.size() / 10;
+
         for (int i = 0; i < 10; ++i) {
             logger->info("Processing batch {}", i);
-            logger->info("Querying skills for batch {}", i);
-            auto net_skills = connection.select_query<SkillsTable>()
-                                      .order_by < SkillsTable::field_t < "id" >> (zxorm::order_t::ASC)
-                    .limit(batch_size, i * batch_size)
-                    .where_many(clause)
-                    .exec();
             logger->info("Skills in batch {}", i);
             auto skill_path_vector = std::vector<std::string>{};
             auto skill_id_vector = std::vector<faiss::idx_t>{};
-            for (const auto &skill: net_skills) {
+            for (const auto &skill: skills | std::views::drop(i * batch_size) | std::views::take(batch_size)) {
                 logger->info("id = {}, path = {}", skill.id, skill.path);
                 skill_path_vector.push_back(skill.path);
                 skill_id_vector.push_back(skill.id);
