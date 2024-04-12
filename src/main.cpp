@@ -69,7 +69,9 @@ int main(int argc, char **argv) {
 
     try {
         auto connection = zxorm::Connection<SkillsTable>("C:/Users/sergei/Downloads/skills.sqlite");
-        auto skills = connection.select_query<SkillsTable>().limit(50).many().exec();
+        auto skills = connection.select_query<SkillsTable>()
+                .order_by<SkillsTable::field_t<"id">>(zxorm::order_t::DESC)
+                .limit(50, 10).many().exec();
         for (const auto &skill: skills) {
             logger->info("id = {}, name = {}, path = {}", skill.id, skill.name, skill.path);
         }
