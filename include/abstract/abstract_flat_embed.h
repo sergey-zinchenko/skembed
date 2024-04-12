@@ -13,11 +13,7 @@ class abstract_flat_embed {
 public:
     class iterator {
     public:
-        using iterator_category = std::input_iterator_tag;
         using value_type = std::shared_ptr<std::vector<float_t>>;
-        using difference_type = std::ptrdiff_t;
-        using pointer = value_type *;
-        using reference = value_type &;
 
         iterator(std::shared_ptr<float_t> data, ptrdiff_t row_size, ptrdiff_t last_row_offset,
                  ptrdiff_t offset);
