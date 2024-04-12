@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
         }
         logger->info("Skills count = {}", total_skills_count.value());
 
-        int batch_size = total_skills_count.value() / 10;
+        auto batch_size = total_skills_count.value() / 10;
         for (int i = 0; i < 10; ++i) {
             logger->info("Processing batch {}", i);
             logger->info("Querying skills for batch {}", i);
