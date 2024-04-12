@@ -22,7 +22,7 @@ struct skill {
     int id = 0;
     std::string name;
     std::string parent_skill_name;
-    int node_level {};
+    int node_level{};
     std::string aliases;
     std::string path;
     std::string tags;
@@ -67,18 +67,6 @@ int main(int argc, char **argv) {
 
     auto logger = create_logger();
 
-    try {
-        auto connection = zxorm::Connection<SkillsTable>("C:/Users/sergei/Downloads/skills.sqlite");
-        auto skills = connection.select_query<SkillsTable>()
-                .order_by<SkillsTable::field_t<"id">>(zxorm::order_t::DESC)
-                .limit(50, 10).many().exec();
-        for (const auto &skill: skills) {
-            logger->info("id = {}, name = {}, path = {}", skill.id, skill.name, skill.path);
-        }
-
-    } catch (const zxorm::ConnectionError &e) {
-        logger->critical(e.what());
-    }
 
     auto injector = di::make_injector(
             di::bind<abstract_model_backend>().to<model_backend>().in(di::singleton),
@@ -95,48 +83,48 @@ int main(int argc, char **argv) {
             di::bind<spdlog::logger>().to(logger)
     );
     try {
+        logger->info("Process start");
+        logger->info("Creating index and db connection");
         auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
-
-        std::unordered_map<faiss::idx_t, std::string> input_texts = {
-                {1, "Космические корабли бараздят просторы большого театра"},
-                {2, "Двигатель внутреннего сгорания сгорает изнутри"},
-                {3, "Солнечный ветер толкает корабль к северному полюсу"},
-                {4, "Если бы у рыбы были блохи то это была бы собака"},
-                {5, "Чтобы приготовить яишницу надо найти гнездо курицы"},
-                {6, "Мотыга капает землю лучше чем лопата"},
-                {7, "Хуанг сказал что скоро видеокарты заменять программистов"}
-        };
-
-        std::vector<faiss::idx_t> keys;
-        std::vector<std::string> values;
-        for (const auto &pair: input_texts) {
-            keys.push_back(pair.first);
-            values.push_back(pair.second);
+        auto connection = zxorm::Connection<SkillsTable>("C:/Users/sergei/Downloads/skills.sqlite");
+        logger->info("Counting skills");
+        auto clause = SkillsTable::field_t<"path">().like("%.NET%") || SkillsTable::field_t<"path">().like("%C#%");
+        auto total_skills_count = connection.select_query<zxorm::CountAll, zxorm::From<SkillsTable>>()
+                .where_one(clause)
+                .exec();
+        if (!total_skills_count.has_value()) {
+            logger->error("Failed to count skills");
+            return 1;
         }
-        index->add(keys, values);
+        logger->info("Skills count = {}", total_skills_count.value());
 
-
-        index->save("logs/index.idx");
-        index->load("logs/index.idx");
-
-
-        std::vector<std::string> search_texts = {
-                "Приготовление яишничы на костре - хорошая прилюдия к завтраку",
-                "Nvidia - компания которая проивзодит ускорители",
-                "Анекдот про блох рассказал студент на экзамене по зоологии",
-                "В фильме про шурика корабли бараздили просторы чего то там",
-                "Эксковатор применяют для рытья котлованов в наши дня",
-                "У субару опозитный мотор",
-                "Вояджер вылетел за пределы солнечной системы"
-        };
-
-        auto r1 = index->search(search_texts, 1);
-        for (size_t j = 0; j < r1.size(); ++j) {
-            const auto &result = r1[j];
-            for (const auto &i: result) {
-                logger->warn("{} = {}", search_texts[j], input_texts[i]);
+        int batch_size = total_skills_count.value() / 10;
+        for (int i = 0; i < 10; ++i) {
+            logger->info("Processing batch {}", i);
+            logger->info("Querying skills for batch {}", i);
+            auto net_skills = connection.select_query<SkillsTable>()
+                                      .order_by < SkillsTable::field_t < "id" >> (zxorm::order_t::ASC)
+                    .limit(batch_size, i * batch_size)
+                    .where_many(clause)
+                    .exec();
+            logger->info("Skills in batch {}", i);
+            auto skill_path_vector = std::vector<std::string>{};
+            auto skill_id_vector = std::vector<faiss::idx_t>{};
+            for (const auto &skill: net_skills) {
+                logger->info("id = {}, path = {}", skill.id, skill.path);
+                skill_path_vector.push_back(skill.path);
+                skill_id_vector.push_back(skill.id);
             }
+            logger->info("Adding {} skills of batch {} to index", skill_path_vector.size(), i);
+            index->add(skill_id_vector, skill_path_vector);
+            logger->info("Saving index of batch {}", i);
+            index->save("skills_" + std::to_string(i) + ".idx");
+            logger->info("Index of batch {} saved", i);
         }
+    }
+    catch (const zxorm::Error &e) {
+        logger->error(e.what());
+        return 1;
     }
     catch (const std::exception &e) {
         logger->error(e.what());
