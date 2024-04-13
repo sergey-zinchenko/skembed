@@ -14,7 +14,7 @@
 
 class nearest_neighbor_index: public abstract_index<faiss::idx_t, std::shared_ptr<abstract_flat_embed>, faiss::idx_t> {
 public:
-    explicit nearest_neighbor_index(std::shared_ptr<spdlog::logger> logger);
+    explicit nearest_neighbor_index(std::shared_ptr<spdlog::logger> &logger);
     void add(std::vector<faiss::idx_t> keys, std::shared_ptr<abstract_flat_embed> values) override;
     std::vector<std::vector<faiss::idx_t>> search(std::shared_ptr<abstract_flat_embed> values, faiss::idx_t number_of_extracted_results) override;
     void save(std::filesystem::path indexPath) override;

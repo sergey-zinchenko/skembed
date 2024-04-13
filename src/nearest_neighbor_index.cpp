@@ -4,11 +4,12 @@
 
 #include <fstream>
 #include <string>
+#include <utility>
 #include "nearest_neighbor_index.h"
 #include "faiss/index_io.h"
 
-nearest_neighbor_index::nearest_neighbor_index(std::shared_ptr<spdlog::logger> logger) :
-        logger_(std::move(logger)) {
+nearest_neighbor_index::nearest_neighbor_index(std::shared_ptr<spdlog::logger> &logger) :
+        logger_(logger) {
 }
 
 void nearest_neighbor_index::save(std::filesystem::path indexPath) {
@@ -59,7 +60,7 @@ nearest_neighbor_index::search(std::shared_ptr<abstract_flat_embed> values, fais
     std::shared_lock lock(mutex_);
     if (!index_)
         throw std::runtime_error("Index is not initialized");
-    auto result_size = number_of_extracted_results * values->rows();
+    auto const result_size = number_of_extracted_results * values->rows();
     auto results_idxes = std::vector<faiss::idx_t>(result_size);
     auto result_distances = std::vector<float_t>(result_size);
     index_->search(static_cast<faiss::idx_t>(values->rows()), values->data(), number_of_extracted_results,
