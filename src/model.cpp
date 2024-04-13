@@ -40,13 +40,13 @@ model::model(gpt_params params, std::function<std::shared_ptr<abstract_flat_embe
 std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string>::iterator &prompts_start,
                                                            const std::vector<std::string>::iterator &prompts_end) const {
     std::vector<std::vector<int32_t>> tokenized_prompts;
-    for (auto prompt = prompts_start; prompt != prompts_end; ++prompt) {
-        auto tokenized_elem = ::llama_tokenize(ctx_, *prompt, true, false);
+    for (const auto &prompt: std::vector<std::string>(prompts_start, prompts_end)) {
+        auto tokenized_elem = ::llama_tokenize(ctx_, prompt, true, false);
         if (tokenized_elem.size() > n_batch_) {
             throw std::runtime_error(
                     "Number of tokens in input line exceeds batch size, increase batch size and re-run");
         }
-        if (tokenized_elem.empty() || tokenized_elem.back() != eos_token_) {
+        if (tokenized_elem.back() != eos_token_) {
             tokenized_elem.push_back(eos_token_);
         }
         tokenized_prompts.push_back(tokenized_elem);
