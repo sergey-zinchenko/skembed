@@ -46,10 +46,10 @@ std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std
             throw std::runtime_error(
                     "Number of tokens in input line exceeds batch size, increase batch size and re-run");
         }
-        if (tokenized_elem.back() != eos_token_) {
-            tokenized_elem.push_back(eos_token_);
-        }
-        tokenized_prompts.push_back(tokenized_elem);
+        if (tokenized_elem.back() != eos_token_)
+            tokenized_elem.emplace_back(eos_token_);
+
+        tokenized_prompts.emplace_back(tokenized_elem);
     }
     return tokenized_prompts;
 }
