@@ -21,18 +21,16 @@ void nearest_neighbor_index::save(std::filesystem::path indexPath) {
 void nearest_neighbor_index::load(std::filesystem::path indexPath) {
     logger_->trace("Loading index from {}", indexPath.string());
     std::unique_lock lock(mutex_);
-    auto p_index = faiss::read_index(indexPath.string().c_str());
-    auto p_index_id_map = dynamic_cast<faiss::IndexIDMap *>(p_index);
+    auto p_index = std::shared_ptr<faiss::Index>(faiss::read_index(indexPath.string().c_str()));
+    auto p_index_id_map = std::dynamic_pointer_cast<faiss::IndexIDMap>(p_index);
     if (!p_index_id_map) {
-        delete p_index;
         throw std::runtime_error("Failed to cast index to IndexIDMap");
     }
     auto index_flat_l2 = dynamic_cast<faiss::IndexFlatL2 *>(p_index_id_map->index);
     if (!index_flat_l2) {
-        delete p_index;
         throw std::runtime_error("Failed to cast underlying index to IndexFlatL2");
     }
-    index_ = std::unique_ptr<faiss::IndexIDMap>(p_index_id_map);
+    index_ = std::move(p_index);
     logger_->trace("Index loaded with {} indexed vectors of {} dimensions", index_->ntotal, index_->d);
 }
 

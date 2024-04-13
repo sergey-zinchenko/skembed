@@ -24,5 +24,5 @@ private:
                                                                                           int row_size);
     std::shared_ptr<spdlog::logger> logger_;
     std::shared_mutex mutex_;
-    std::unique_ptr<faiss::IndexIDMap> index_{};
+    std::shared_ptr<faiss::Index> index_{};
 };
