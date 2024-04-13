@@ -31,7 +31,7 @@ struct skill {
 
 namespace di = boost::di;
 
-std::shared_ptr<spdlog::logger> create_logger() {
+auto create_logger() -> std::shared_ptr<spdlog::logger> {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     console_sink->set_level(spdlog::level::debug);
     console_sink->set_pattern("[%^%l%$] %v");
@@ -55,7 +55,7 @@ using SkillsTable = zxorm::Table<"Skills", skill,
         zxorm::Column<"path", &skill::path>,
         zxorm::Column<"tags", &skill::tags>>;
 
-int main(int argc, char **argv) {
+auto main(int argc, char **argv) -> int {
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 #endif
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     auto injector = di::make_injector(
             di::bind<abstract_model_backend>().to<model_backend>().in(di::singleton),
             di::bind<std::function<flat_embed(size_t, size_t)>>().to(
-                    [](const auto &injector) {
+                    [](const auto & /*injector*/) {
                         return [](size_t row_size, size_t rows) {
                             return flat_embed{rows, row_size};
                         };
@@ -101,9 +101,11 @@ int main(int argc, char **argv) {
         }
         logger->info("Skills count = {}", skills.size());
 
-        auto batch_size = skills.size() / 10;
+        const auto batch_num = 10;
 
-        for (auto i = 0; i < 10; ++i) {
+        const auto batch_size = skills.size() / batch_num;
+
+        for (auto i = 0; i < batch_num; ++i) {
             logger->info("Processing batch {}", i);
             logger->info("Skills in batch {}", i);
             std::vector<std::string> skill_path_vector;

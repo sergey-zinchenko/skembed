@@ -14,8 +14,8 @@ public:
 
     virtual void add(const std::vector<KeyType> &keys, const ValueType &values) = 0;
 
-    [[nodiscard]] virtual std::vector<std::vector<KeyType>>
-    search(const ValueType &value, ResultSizeType number_of_extracted_results) = 0;
+    [[nodiscard]] virtual auto search(const ValueType &value,
+                                      ResultSizeType number_of_extracted_results) -> std::vector<std::vector<KeyType>> = 0;
 
     virtual void save(const std::filesystem::path &indexPath) = 0;
 

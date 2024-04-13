@@ -25,8 +25,8 @@ index_of_embeddings::index_of_embeddings(std::shared_ptr<abstract_model> model,
         logger_(std::move(logger)) {
 }
 
-std::vector<std::vector<faiss::idx_t>>
-index_of_embeddings::search(const std::vector<std::string> &value, faiss::idx_t number_of_extracted_results) {
+auto index_of_embeddings::search(const std::vector<std::string> &value,
+                                 faiss::idx_t number_of_extracted_results) -> std::vector<std::vector<faiss::idx_t>> {
     auto embeddings = model_->embed(value);
     return index_delegate_->search(embeddings, number_of_extracted_results);
 }

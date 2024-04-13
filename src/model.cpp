@@ -4,6 +4,7 @@
 
 #include "model.h"
 
+#include <cstddef>
 #include <utility>
 
 model::model(gpt_params params, std::function<flat_embed(size_t, size_t)> embed_factory,
@@ -39,7 +40,7 @@ model::model(gpt_params params, std::function<flat_embed(size_t, size_t)> embed_
 }
 
 
-std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std::string> &prompts) const {
+auto model::tokenize_and_trim(const std::vector<std::string> &prompts) const -> std::vector<std::vector<int32_t>> {
     std::vector<std::vector<int32_t>> tokenized_prompts;
     for (const auto &prompt: prompts) {
         auto tokenized_elem = ::llama_tokenize(ctx_, prompt, true, false);
@@ -47,29 +48,31 @@ std::vector<std::vector<int32_t>> model::tokenize_and_trim(const std::vector<std
             throw std::runtime_error(
                     "Number of tokens in input line exceeds batch size, increase batch size and re-run");
         }
-        if (tokenized_elem.back() != eos_token_)
+        if (tokenized_elem.back() != eos_token_) {
             tokenized_elem.emplace_back(eos_token_);
+        }
 
         tokenized_prompts.emplace_back(tokenized_elem);
     }
     return tokenized_prompts;
 }
 
-flat_embed model::process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const {
+auto model::process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const -> flat_embed {
     auto embeddings = embed_factory_(n_embed_, tokenized_prompts.size());
     auto batch = llama_batch_init(n_batch_, 0, 1);
-    auto p_emb = embeddings.data();
-    auto p = 0, s = 0;
+    auto *p_emb = embeddings.data();
+    auto p = 0;
+    auto s = 0;
     for (const auto &tokenized_prompt: tokenized_prompts) {
         if (batch.n_tokens + tokenized_prompt.size() > n_batch_) {
-            batch_decode(batch, p_emb + p * n_embed_);
+            batch_decode(batch, p_emb + static_cast<ptrdiff_t>(p * n_embed_));
             llama_batch_clear(batch);
             p += s;
             s = 0;
         }
         batch_add_seq(batch, tokenized_prompt, s++);
     }
-    batch_decode(batch, p_emb + p * n_embed_);
+    batch_decode(batch, p_emb + static_cast<ptrdiff_t>(p * n_embed_));
     llama_batch_clear(batch);
     llama_batch_free(batch);
     return embeddings;
@@ -81,24 +84,25 @@ void model::batch_decode(llama_batch &batch, float *output) const {
 
     // run model
     auto decode_result = llama_decode(ctx_, batch);
-    if (decode_result == 1)
+    if (decode_result == 1) {
         logger_->warn(
                 "could not find a KV slot for the batch (try reducing the size of the batch or increase the context)");
-    else if (decode_result < 0)
+    } else if (decode_result < 0) {
         throw std::runtime_error("error decoding batch");
+    }
 
     for (auto i = 0; i < batch.n_tokens; i++) {
-        if (!batch.logits[i]) {
+        if (batch.logits[i] == 0) {
             continue;
         }
 
-        auto embed = llama_get_embeddings_seq(ctx_, batch.seq_id[i][0]);
-        if (!embed) {
+        auto *embed = llama_get_embeddings_seq(ctx_, batch.seq_id[i][0]);
+        if (embed == nullptr) {
             embed = llama_get_embeddings_ith(ctx_, i);
         }
 
-        if (embed) {
-            auto out = output + batch.seq_id[i][0] * n_embed_;
+        if (embed != nullptr) {
+            auto *out = output + static_cast<ptrdiff_t>(batch.seq_id[i][0] * n_embed_);
             llama_embd_normalize(embed, out, n_embed_);
         }
     }
@@ -117,7 +121,7 @@ model::~model() {
     logger_->info("Model freed");
 }
 
-flat_embed model::embed(const std::vector<std::string> &prompts) {
+auto model::embed(const std::vector<std::string> &prompts) -> flat_embed {
     logger_->trace("Embedding prompts");
     std::lock_guard lock(mutex_);
     auto tokenized_prompts = tokenize_and_trim(prompts);

@@ -19,13 +19,13 @@ public:
 
         iterator(const iterator &other) = default;
 
-        iterator &operator++();
+        auto operator++() -> iterator &;
 
-        [[nodiscard]] bool operator==(const iterator &other) const;
+        [[nodiscard]] auto operator==(const iterator &other) const -> bool;
 
-        [[nodiscard]] bool operator!=(const iterator &other) const;
+        [[nodiscard]] auto operator!=(const iterator &other) const -> bool;
 
-        [[nodiscard]] value_type operator*();
+        [[nodiscard]] auto operator*() -> value_type;
 
     private:
         const ptrdiff_t row_size_, last_row_offset_;
@@ -33,20 +33,20 @@ public:
         std::shared_ptr<std::vector<float_t>> data_;
     };
 
-    [[nodiscard]] iterator begin();
+    [[nodiscard]] auto begin() -> iterator;
 
-    [[nodiscard]] iterator end();
+    [[nodiscard]] auto end() -> iterator;
 
-    [[nodiscard]] float_t *data() const;
+    [[nodiscard]] auto data() const -> float_t *;
 
-    [[nodiscard]] size_t rows() const;
+    [[nodiscard]] auto rows() const -> size_t;
 
-    [[nodiscard]] size_t row_size() const;
+    [[nodiscard]] auto row_size() const -> size_t;
 
     flat_embed(size_t rows, size_t row_size);
 
 private:
-    [[nodiscard]] inline size_t last_row_offset() const;
+    [[nodiscard]] inline auto last_row_offset() const -> size_t;
 
     size_t rows_, row_size_;
     std::shared_ptr<std::vector<float_t>> data_;

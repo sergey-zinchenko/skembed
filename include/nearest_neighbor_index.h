@@ -18,16 +18,17 @@ public:
 
     void add(const std::vector<faiss::idx_t> &keys, const flat_embed &values) override;
 
-    [[nodiscard]] std::vector<std::vector<faiss::idx_t>>
-    search(const flat_embed &values, faiss::idx_t number_of_extracted_results) override;
+    [[nodiscard]] auto
+    search(const flat_embed &values,
+           faiss::idx_t number_of_extracted_results) -> std::vector<std::vector<faiss::idx_t>> override;
 
     void save(const std::filesystem::path &indexPath) override;
 
     void load(const std::filesystem::path &indexPath) override;
 
 private:
-    [[nodiscard]] static std::vector<std::vector<faiss::idx_t>> reshape_vectors(const std::vector<faiss::idx_t> &flat,
-                                                                                int row_size);
+    [[nodiscard]] static auto reshape_vectors(const std::vector<faiss::idx_t> &flat,
+                                              int row_size) -> std::vector<std::vector<faiss::idx_t>>;
 
     std::shared_ptr<spdlog::logger> logger_;
     std::shared_mutex mutex_;

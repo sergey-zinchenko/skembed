@@ -14,8 +14,7 @@
 
 class model : public abstract_model {
 public:
-    [[nodiscard]] flat_embed
-    embed(const std::vector<std::string> &prompts) override;
+    [[nodiscard]] auto embed(const std::vector<std::string> &prompts) -> flat_embed override;
 
     model(gpt_params params,
           std::function<flat_embed(size_t, size_t)> embed_factory,
@@ -25,10 +24,11 @@ public:
     ~model() override;
 
 private:
-    [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::vector<std::string> &prompts) const;
+    [[nodiscard]] auto
+    tokenize_and_trim(const std::vector<std::string> &prompts) const -> std::vector<std::vector<int32_t>>;
 
-    [[nodiscard]] flat_embed
-    process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const;
+    [[nodiscard]] auto
+    process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const -> flat_embed;
 
     void batch_decode(llama_batch &batch, float *output) const;
 

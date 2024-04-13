@@ -19,8 +19,8 @@ public:
 
     void add(const std::vector<faiss::idx_t> &key, const std::vector<std::string> &value) override;
 
-    [[nodiscard]] std::vector<std::vector<faiss::idx_t>>
-    search(const std::vector<std::string> &value, faiss::idx_t number_of_extracted_results) override;
+    [[nodiscard]] auto search(const std::vector<std::string> &value,
+                              faiss::idx_t number_of_extracted_results) -> std::vector<std::vector<faiss::idx_t>> override;
 
     void save(const std::filesystem::path &indexPath) override;
 
