@@ -24,5 +24,5 @@ private:
     [[nodiscard]] inline size_t last_row_offset() const;
 
     size_t rows_, row_size_;
-    std::shared_ptr<float_t> data_ = std::shared_ptr<float_t>(new float_t[row_size_ * rows_]);
+    std::shared_ptr<float_t[]> data_ = std::shared_ptr<float_t[]>(new float_t[row_size_ * rows_]);
 };
