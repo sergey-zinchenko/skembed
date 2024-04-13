@@ -4,19 +4,44 @@
 
 #pragma once
 
-#include "abstract/abstract_flat_embed.h"
+#include <vector>
+#include <cmath>
+#include <memory>
 
-class flat_embed : public abstract_flat_embed {
+struct flat_embed {
 public:
-    [[nodiscard]] iterator begin() const override;
+    class iterator {
+    public:
+        using value_type = std::vector<float_t>;
 
-    [[nodiscard]] iterator end() const override;
+        iterator(std::shared_ptr<std::vector<float_t>> data, ptrdiff_t row_size, ptrdiff_t last_row_offset,
+                 ptrdiff_t offset);
 
-    [[nodiscard]] float_t *data() const override;
+        iterator(const iterator &other) = default;
 
-    [[nodiscard]] size_t rows() const override;
+        iterator &operator++();
 
-    [[nodiscard]] size_t row_size() const override;
+        [[nodiscard]] bool operator==(const iterator &other) const;
+
+        [[nodiscard]] bool operator!=(const iterator &other) const;
+
+        [[nodiscard]] value_type operator*();
+
+    private:
+        const ptrdiff_t row_size_, last_row_offset_;
+        ptrdiff_t offset_;
+        std::shared_ptr<std::vector<float_t>> data_;
+    };
+
+    [[nodiscard]] iterator begin();
+
+    [[nodiscard]] iterator end();
+
+    [[nodiscard]] float_t *data() const;
+
+    [[nodiscard]] size_t rows() const;
+
+    [[nodiscard]] size_t row_size() const;
 
     flat_embed(size_t rows, size_t row_size);
 
@@ -24,5 +49,5 @@ private:
     [[nodiscard]] inline size_t last_row_offset() const;
 
     size_t rows_, row_size_;
-    std::shared_ptr<float_t[]> data_ = std::shared_ptr<float_t[]>(new float_t[row_size_ * rows_]);
+    std::shared_ptr<std::vector<float_t>> data_;
 };

@@ -10,23 +10,24 @@
 #include "llama/llama.h"
 #include "llama/common.h"
 #include "spdlog/spdlog.h"
+#include "flat_embed.h"
 
 class model : public abstract_model {
 public:
-    [[nodiscard]] std::shared_ptr<abstract_flat_embed>
-    embed(const std::vector<std::string>::iterator &prompts_start, const std::vector<std::string>::iterator &prompts_end) override;
+    [[nodiscard]] flat_embed
+    embed(const std::vector<std::string> &prompts) override;
 
-    model(gpt_params params,
-          std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)> embed_factory,
-          const std::shared_ptr<abstract_model_backend> &model_backend,
+    model(const gpt_params &params,
+          std::function<flat_embed(size_t, size_t)> embed_factory,
+          std::shared_ptr<abstract_model_backend> model_backend,
           std::shared_ptr<spdlog::logger> logger);
 
     ~model() override;
-private:
-    [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::vector<std::string>::iterator&prompts_start,
-                                                                      const std::vector<std::string>::iterator &prompts_end) const;
 
-    [[nodiscard]] std::shared_ptr<abstract_flat_embed>
+private:
+    [[nodiscard]] std::vector<std::vector<int32_t>> tokenize_and_trim(const std::vector<std::string> &prompts) const;
+
+    [[nodiscard]] flat_embed
     process_tokenized_prompts(const std::vector<std::vector<int32_t>> &tokenized_prompts) const;
 
     void batch_decode(llama_batch &batch, float *output) const;
@@ -34,7 +35,7 @@ private:
     static void batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens, int seq_id);
 
     gpt_params params_;
-    std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)> embed_factory_;
+    std::function<flat_embed(size_t, size_t)> embed_factory_;
     std::shared_ptr<abstract_model_backend> model_backend_;
     std::shared_ptr<spdlog::logger> logger_;
     std::mutex mutex_;

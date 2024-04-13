@@ -6,22 +6,29 @@
 
 #include <shared_mutex>
 #include "abstract/abstract_index.h"
-#include "abstract/abstract_flat_embed.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIDMap.h"
 #include "faiss/MetricType.h"
 #include "spdlog/logger.h"
+#include "flat_embed.h"
 
-class nearest_neighbor_index: public abstract_index<faiss::idx_t, std::shared_ptr<abstract_flat_embed>, faiss::idx_t> {
+class nearest_neighbor_index : public abstract_index<faiss::idx_t, flat_embed, faiss::idx_t> {
 public:
-    explicit nearest_neighbor_index(std::shared_ptr<spdlog::logger> &logger);
-    void add(std::vector<faiss::idx_t> keys, std::shared_ptr<abstract_flat_embed> values) override;
-    std::vector<std::vector<faiss::idx_t>> search(std::shared_ptr<abstract_flat_embed> values, faiss::idx_t number_of_extracted_results) override;
-    void save(std::filesystem::path indexPath) override;
-    void load(std::filesystem::path indexPath) override;
+    explicit nearest_neighbor_index(std::shared_ptr<spdlog::logger> logger);
+
+    void add(const std::vector<faiss::idx_t> &keys, const flat_embed &values) override;
+
+    [[nodiscard]] std::vector<std::vector<faiss::idx_t>>
+    search(const flat_embed &values, faiss::idx_t number_of_extracted_results) override;
+
+    void save(const std::filesystem::path &indexPath) override;
+
+    void load(const std::filesystem::path &indexPath) override;
+
 private:
-    static std::vector<std::vector<faiss::idx_t>> reshape_vectors(const std::vector<faiss::idx_t> &flat,
-                                                                                          int row_size);
+    [[nodiscard]] static std::vector<std::vector<faiss::idx_t>> reshape_vectors(const std::vector<faiss::idx_t> &flat,
+                                                                                int row_size);
+
     std::shared_ptr<spdlog::logger> logger_;
     std::shared_mutex mutex_;
     std::shared_ptr<faiss::Index> index_{};

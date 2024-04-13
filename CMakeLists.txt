@@ -17,8 +17,6 @@ add_executable(skembed
         include/abstract/abstract_index.h
         include/abstract/abstract_model_backend.h
         include/abstract/abstract_model.h
-        include/abstract/abstract_flat_embed.h
-        include/abstract/abstract_embedding_context.h
         include/model_backend.h
         include/model.h
         include/flat_embed.h
@@ -30,7 +28,6 @@ add_executable(skembed
         src/model.cpp
         src/nearest_neighbor_index.cpp
         src/flat_embed.cpp
-        src/abstract_flat_embed.cpp
 )
 
 target_include_directories(skembed PRIVATE include ${BEXT_DI_INCLUDE_DIRS})

@@ -8,18 +8,18 @@
 #include "nearest_neighbor_index.h"
 #include "faiss/index_io.h"
 
-nearest_neighbor_index::nearest_neighbor_index(std::shared_ptr<spdlog::logger> &logger) :
-        logger_(logger) {
+nearest_neighbor_index::nearest_neighbor_index(std::shared_ptr<spdlog::logger> logger) :
+        logger_(std::move(logger)) {
 }
 
-void nearest_neighbor_index::save(std::filesystem::path indexPath) {
+void nearest_neighbor_index::save(const std::filesystem::path &indexPath) {
     logger_->trace("Saving index to {}", indexPath.string());
     std::shared_lock lock(mutex_);
     faiss::write_index(index_.get(), indexPath.string().c_str());
     logger_->trace("Index saved to {}", indexPath.string());
 }
 
-void nearest_neighbor_index::load(std::filesystem::path indexPath) {
+void nearest_neighbor_index::load(const std::filesystem::path &indexPath) {
     logger_->trace("Loading index from {}", indexPath.string());
     std::unique_lock lock(mutex_);
     auto p_index = std::shared_ptr<faiss::Index>(faiss::read_index(indexPath.string().c_str()));
@@ -35,37 +35,37 @@ void nearest_neighbor_index::load(std::filesystem::path indexPath) {
     logger_->trace("Index loaded with {} indexed vectors of {} dimensions", index_->ntotal, index_->d);
 }
 
-void nearest_neighbor_index::add(std::vector<faiss::idx_t> keys, std::shared_ptr<abstract_flat_embed> values) {
+void nearest_neighbor_index::add(const std::vector<faiss::idx_t> &keys, const flat_embed &values) {
     logger_->trace("Adding {} vectors to index", keys.size());
-    if (keys.size() != values->rows())
+    if (keys.size() != values.rows())
         throw std::runtime_error("Keys and values sizes are different");
     if (keys.empty())
         return;
     std::unique_lock lock(mutex_);
     if (index_) {
-        if (index_->d != values->row_size())
+        if (index_->d != values.row_size())
             throw std::runtime_error("Index dimension is different from the dimension of the added vectors");
     } else {
-        auto underlying_index_ = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(values->row_size()));
+        auto underlying_index_ = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(values.row_size()));
         index_ = std::make_shared<faiss::IndexIDMap>(underlying_index_);
     }
-    index_->add_with_ids(static_cast<faiss::idx_t>(values->rows()), values->data(), keys.data());
+    index_->add_with_ids(static_cast<faiss::idx_t>(values.rows()), values.data(), keys.data());
     logger_->trace("Added {} vectors to index. New index size is {}", keys.size(), index_->ntotal);
 }
 
 std::vector<std::vector<faiss::idx_t>>
-nearest_neighbor_index::search(std::shared_ptr<abstract_flat_embed> values, faiss::idx_t number_of_extracted_results) {
-    logger_->trace("Querying index with {} values and asking for {} results", values->rows(),
+nearest_neighbor_index::search(const flat_embed &values, faiss::idx_t number_of_extracted_results) {
+    logger_->trace("Querying index with {} values and asking for {} results", values.rows(),
                    number_of_extracted_results);
     std::shared_lock lock(mutex_);
     if (!index_)
         throw std::runtime_error("Index is not initialized");
-    auto const result_size = number_of_extracted_results * values->rows();
+    auto const result_size = number_of_extracted_results * values.rows();
     auto results_idxes = std::vector<faiss::idx_t>(result_size);
     auto result_distances = std::vector<float_t>(result_size);
-    index_->search(static_cast<faiss::idx_t>(values->rows()), values->data(), number_of_extracted_results,
+    index_->search(static_cast<faiss::idx_t>(values.rows()), values.data(), number_of_extracted_results,
                    result_distances.data(), results_idxes.data());
-    auto result =  reshape_vectors(results_idxes, static_cast<int>(number_of_extracted_results));
+    auto result = reshape_vectors(results_idxes, static_cast<int>(number_of_extracted_results));
     logger_->info("Querying index done");
     return result;
 }

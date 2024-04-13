@@ -71,15 +71,16 @@ int main(int argc, char **argv) {
 
     auto injector = di::make_injector(
             di::bind<abstract_model_backend>().to<model_backend>().in(di::singleton),
-            di::bind<std::function<std::shared_ptr<abstract_flat_embed>(size_t, size_t)>>().to(
+            di::bind<std::function<flat_embed(size_t, size_t)>>().to(
                     [](const auto &injector) {
                         return [](size_t row_size, size_t rows) {
-                            return std::make_shared<flat_embed>(rows, row_size);
+                            return flat_embed{rows, row_size};
                         };
                     }
             ),
             di::bind<abstract_model>().to<model>().in(di::singleton),
-            di::bind<abstract_index<faiss::idx_t, std::shared_ptr<abstract_flat_embed>, faiss::idx_t>>().to<nearest_neighbor_index>(),
+            di::bind<abstract_index<faiss::idx_t, flat_embed, faiss::idx_t>>().to<nearest_neighbor_index>().in(
+                    di::singleton),
             di::bind<gpt_params>().to(params),
             di::bind<spdlog::logger>().to(logger)
     );
@@ -91,7 +92,8 @@ int main(int argc, char **argv) {
         logger->info("Querying skills");
         auto skills = connection.select_query<SkillsTable>()
                               .order_by < SkillsTable::field_t < "id" >> (zxorm::order_t::ASC)
-                .where_many( SkillsTable::field_t<"path">().like("%.NET%") || SkillsTable::field_t<"path">().like("%C#%"))
+                .where_many(
+                        SkillsTable::field_t<"path">().like("%.NET%") || SkillsTable::field_t<"path">().like("%C#%"))
                 .exec().to_vector();
         if (skills.empty()) {
             logger->error("No skills found");
