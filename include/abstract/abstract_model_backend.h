@@ -4,7 +4,7 @@
 
 #pragma once
 
-class abstract_model_backend {
+struct abstract_model_backend {
 public:
     virtual ~abstract_model_backend() = default;
 };

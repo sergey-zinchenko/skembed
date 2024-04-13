@@ -8,7 +8,7 @@
 #include <vector>
 #include "flat_embed.h"
 
-class abstract_model {
+struct abstract_model {
 public:
     virtual ~abstract_model() = default;
 

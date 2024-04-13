@@ -8,7 +8,7 @@
 #include <vector>
 
 template<typename KeyType, typename ValueType, typename ResultSizeType>
-class abstract_index {
+struct abstract_index {
 public:
     virtual ~abstract_index() = default;
 

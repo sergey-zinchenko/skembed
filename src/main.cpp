@@ -36,10 +36,10 @@ std::shared_ptr<spdlog::logger> create_logger() {
     console_sink->set_level(spdlog::level::debug);
     console_sink->set_pattern("[%^%l%$] %v");
 
-    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/multisink.txt", true);
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/skembed.txt", true);
     file_sink->set_level(spdlog::level::trace);
 
-    auto logger = std::make_shared<spdlog::logger>("multi_sink",
+    auto logger = std::make_shared<spdlog::logger>("global",
                                                    std::initializer_list<spdlog::sink_ptr>{console_sink, file_sink});
     logger->set_level(spdlog::level::trace);
     return logger;
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
         logger->info("Process start");
         logger->info("Creating index and db connection");
         auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
-        auto connection = zxorm::Connection<SkillsTable>("C:/Users/sergei/Downloads/skills.sqlite");
+        auto connection = zxorm::Connection<SkillsTable>("C:/Users/Sergei/Downloads/skills.sqlite");
         logger->info("Querying skills");
         auto skills = connection.select_query<SkillsTable>()
                               .order_by < SkillsTable::field_t < "id" >> (zxorm::order_t::ASC)
