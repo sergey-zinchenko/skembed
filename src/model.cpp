@@ -4,7 +4,9 @@
 
 #include "model.h"
 
-model::model(const gpt_params &params, std::function<flat_embed(size_t, size_t)> embed_factory,
+#include <utility>
+
+model::model(gpt_params params, std::function<flat_embed(size_t, size_t)> embed_factory,
              std::shared_ptr<abstract_model_backend> model_backend,
              std::shared_ptr<spdlog::logger> logger) :
         params_(std::move(params)),

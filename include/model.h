@@ -17,7 +17,7 @@ public:
     [[nodiscard]] flat_embed
     embed(const std::vector<std::string> &prompts) override;
 
-    model(const gpt_params &params,
+    model(gpt_params params,
           std::function<flat_embed(size_t, size_t)> embed_factory,
           std::shared_ptr<abstract_model_backend> model_backend,
           std::shared_ptr<spdlog::logger> logger);
