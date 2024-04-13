@@ -62,21 +62,20 @@ nearest_neighbor_index::search(std::shared_ptr<abstract_flat_embed> values, fais
     if (!index_)
         throw std::runtime_error("Index is not initialized");
     auto result_size = number_of_extracted_results * values->rows();
-    auto results_idxes = new faiss::idx_t[result_size];
-    auto result_distances = new float_t[result_size];
+    auto results_idxes = std::vector<faiss::idx_t>(result_size);
+    auto result_distances = std::vector<float_t>(result_size);
     index_->search(static_cast<faiss::idx_t>(values->rows()), values->data(), number_of_extracted_results,
-                   result_distances, results_idxes);
-    auto result =  reshape_vectors(results_idxes,result_size, static_cast<int>(number_of_extracted_results));
-    delete[] results_idxes;
-    delete[] result_distances;
+                   result_distances.data(), results_idxes.data());
+    auto result =  reshape_vectors(results_idxes, static_cast<int>(number_of_extracted_results));
     logger_->info("Querying index done");
     return result;
 }
 
-std::vector<std::vector<faiss::idx_t>> nearest_neighbor_index::reshape_vectors(const faiss::idx_t* flat, size_t total, int row_size) {
+std::vector<std::vector<faiss::idx_t>> nearest_neighbor_index::reshape_vectors(const std::vector<faiss::idx_t> &flat,
+                                                                               int row_size) {
     std::vector<std::vector<faiss::idx_t>> result;
-    for (auto i = 0; i < total; i += row_size) {
-        result.emplace_back(flat + i, flat + i + row_size);
+    for (auto i = 0; i < flat.size(); i += row_size) {
+        result.emplace_back(flat.begin() + i, flat.begin() + i + row_size);
     }
     return result;
 }

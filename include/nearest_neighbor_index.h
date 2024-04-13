@@ -20,7 +20,8 @@ public:
     void save(std::filesystem::path indexPath) override;
     void load(std::filesystem::path indexPath) override;
 private:
-    static std::vector<std::vector<faiss::idx_t>> reshape_vectors(const faiss::idx_t* flat, size_t total, int row_size);
+    static std::vector<std::vector<faiss::idx_t>> reshape_vectors(const std::vector<faiss::idx_t> &flat,
+                                                                                          int row_size);
     std::shared_ptr<spdlog::logger> logger_;
     std::shared_mutex mutex_;
     std::unique_ptr<faiss::IndexIDMap> index_{};
