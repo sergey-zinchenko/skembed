@@ -46,7 +46,7 @@ void nearest_neighbor_index::add(std::vector<faiss::idx_t> keys, std::shared_ptr
             throw std::runtime_error("Index dimension is different from the dimension of the added vectors");
     } else {
         auto underlying_index_ = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(values->row_size()));
-        index_ = std::make_unique<faiss::IndexIDMap>(underlying_index_);
+        index_ = std::make_shared<faiss::IndexIDMap>(underlying_index_);
     }
     index_->add_with_ids(static_cast<faiss::idx_t>(values->rows()), values->data(), keys.data());
     logger_->trace("Added {} vectors to index. New index size is {}", keys.size(), index_->ntotal);
