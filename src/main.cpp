@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 
         auto batch_size = skills.size() / 10;
 
-        for (int i = 0; i < 10; ++i) {
+        for (auto i = 0; i < 10; ++i) {
             logger->info("Processing batch {}", i);
             logger->info("Skills in batch {}", i);
             auto skill_path_vector = std::vector<std::string>{};
