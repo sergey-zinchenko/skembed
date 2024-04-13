@@ -124,6 +124,6 @@ model::embed(const std::vector<std::string>::iterator &prompts_start,
     std::lock_guard lock(mutex_);
     auto tokenized_prompts = tokenize_and_trim(prompts_start, prompts_end);
     auto embeddings = process_tokenized_prompts(tokenized_prompts);
-    logger_->debug("Prompts embedded");
+    logger_->trace("Prompts embedded");
     return embeddings;
 }
