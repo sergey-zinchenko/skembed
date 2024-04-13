@@ -104,12 +104,12 @@ int main(int argc, char **argv) {
         for (int i = 0; i < 10; ++i) {
             logger->info("Processing batch {}", i);
             logger->info("Skills in batch {}", i);
-            auto skill_path_vector = std::vector<std::string>{};
-            auto skill_id_vector = std::vector<faiss::idx_t>{};
+            std::vector<std::string> skill_path_vector;
+            std::vector<faiss::idx_t> skill_id_vector;
             for (const auto &skill: skills | std::views::drop(i * batch_size) | std::views::take(batch_size)) {
                 logger->info("id = {}, path = {}", skill.id, skill.path);
-                skill_path_vector.push_back(skill.path);
-                skill_id_vector.push_back(skill.id);
+                skill_path_vector.emplace_back(skill.path);
+                skill_id_vector.emplace_back(skill.id);
             }
             logger->info("Adding {} skills of batch {} to index", skill_path_vector.size(), i);
             index->add(skill_id_vector, skill_path_vector);
