@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include <shared_mutex>
 #include "abstract/abstract_index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIDMap.h"
 #include "faiss/MetricType.h"
-#include "spdlog/logger.h"
 #include "flat_embed.h"
+#include "spdlog/logger.h"
+#include <shared_mutex>
 
 class nearest_neighbor_index : public abstract_index<faiss::idx_t, flat_embed, faiss::idx_t> {
 public:
@@ -32,5 +32,5 @@ private:
 
     std::shared_ptr<spdlog::logger> logger_;
     std::shared_mutex mutex_;
-    std::shared_ptr<faiss::Index> index_{};
+    std::shared_ptr<faiss::Index> index_;
 };

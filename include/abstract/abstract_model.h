@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "flat_embed.h"
 #include <string>
 #include <vector>
-#include "flat_embed.h"
 
 struct abstract_model {
 public:
