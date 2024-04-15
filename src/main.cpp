@@ -9,12 +9,12 @@
 #include "model_backend.h"
 #include "nearest_neighbor_index.h"
 
-#include "spdlog/logger.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/sinks/basic_file_sink.h"
 #include "flat_embed.h"
-#include "zxorm/orm/table.hpp"
+#include "spdlog/logger.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "zxorm/orm/connection.hpp"
+#include "zxorm/orm/table.hpp"
 
 #include <boost/di.hpp>
 #include <ranges>
