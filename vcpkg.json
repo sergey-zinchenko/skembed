@@ -16,6 +16,7 @@
     },
     "bext-di",
     "spdlog",
-    "zxorm"
+    "zxorm",
+    "csv-parser"
   ]
 }

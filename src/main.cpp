@@ -10,6 +10,7 @@
 #include "nearest_neighbor_index.h"
 
 #include "flat_embed.h"
+#include "csv-parser/csv.hpp"
 #include "spdlog/logger.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -60,6 +61,7 @@ auto main(int argc, char **argv) -> int {
     SetConsoleOutputCP(CP_UTF8);
 #endif
 
+
     gpt_params params;
 
     if (!gpt_params_parse(argc, argv, params)) {
@@ -68,6 +70,16 @@ auto main(int argc, char **argv) -> int {
 
     auto logger = create_logger();
 
+    csv::CSVReader reader("R:\\Temp\\Packages.csv");
+
+    for (csv::CSVRow& row: reader) { // Input iterator
+        for (csv::CSVField& field: row) {
+            // By default, get<>() produces a std::string.
+            // A more efficient get<string_view>() is also available, where the resulting
+            // string_view is valid as long as the parent CSVRow is alive
+            logger->info("csv field : {}", field.get<std::string>());
+        }
+    }
 
     auto injector = di::make_injector(
             di::bind<abstract_model_backend>().to<model_backend>().in(di::singleton),
