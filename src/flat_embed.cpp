@@ -15,11 +15,13 @@ flat_embed::iterator::iterator(std::shared_ptr<std::vector<float_t>> data, const
         offset_(offset) {}
 
 auto flat_embed::iterator::operator++() -> flat_embed::iterator & {
-    auto next_row_offset = offset_ + row_size_;
-    if (next_row_offset <= last_row_offset_) {
-        offset_ = next_row_offset;
-    }
-    return *this;
+  auto next_row_offset = offset_ + row_size_;
+  if (next_row_offset <= last_row_offset_) {
+	  offset_ = next_row_offset;
+	} else {
+	  offset_ = last_row_offset_;
+	}
+  return *this;
 }
 
 auto flat_embed::iterator::operator==(const flat_embed::iterator &other) const -> bool {
@@ -34,7 +36,7 @@ auto flat_embed::iterator::operator*() -> flat_embed::iterator::value_type {
     return std::vector<float_t>{data_->begin() + offset_, data_->begin() + offset_ + row_size_};
 }
 
-auto flat_embed::begin() -> flat_embed::iterator {
+auto flat_embed::begin() const -> flat_embed::iterator {
     return {data_, static_cast<ptrdiff_t>(row_size()),
             static_cast<ptrdiff_t>(last_row_offset()), 0};
 }
@@ -48,7 +50,7 @@ auto flat_embed::row_size() const -> size_t { return row_size_; }
 auto flat_embed::data() const -> float_t * { return data_->data(); }
 
 
-auto flat_embed::end() -> flat_embed::iterator {
+auto flat_embed::end() const -> flat_embed::iterator {
     return {data_,
             static_cast<ptrdiff_t>(row_size()),
             static_cast<ptrdiff_t>(last_row_offset()),

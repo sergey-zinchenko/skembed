@@ -30,11 +30,17 @@ struct skill {
     std::string tags;
 };
 
+struct package {
+	faiss::idx_t id = 0;
+	std::string title;
+	std::string description;
+};
+
 namespace di = boost::di;
 
 auto create_logger() -> std::shared_ptr<spdlog::logger> {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    console_sink->set_level(spdlog::level::debug);
+    console_sink->set_level(spdlog::level::info);
     console_sink->set_pattern("[%^%l%$] %v");
 
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/skembed.txt", true);
@@ -70,16 +76,6 @@ auto main(int argc, char **argv) -> int {
 
     auto logger = create_logger();
 
-    csv::CSVReader reader("R:\\Temp\\Packages.csv");
-
-    for (csv::CSVRow& row: reader) { // Input iterator
-        for (csv::CSVField& field: row) {
-            // By default, get<>() produces a std::string.
-            // A more efficient get<string_view>() is also available, where the resulting
-            // string_view is valid as long as the parent CSVRow is alive
-            logger->info("csv field : {}", field.get<std::string>());
-        }
-    }
 
     auto injector = di::make_injector(
             di::bind<abstract_model_backend>().to<model_backend>().in(di::singleton),
@@ -98,10 +94,22 @@ auto main(int argc, char **argv) -> int {
     );
     try {
         logger->info("Process start");
+
+		logger->info ("Reading information about packages from csv");
+		csv::CSVReader reader("C:/Users/Sergei/Desktop/Packages.csv");
+		std::vector<package> packages;
+		for (csv::CSVRow& row: reader) {
+			auto package_id = row["Id"].get<faiss::idx_t>();
+			auto package_title = row["Title"].get<std::string>();
+			auto package_description = row["Description"].get<std::string>();
+			packages.emplace_back (package { package_id, package_title, package_description});
+		}
+
         logger->info("Creating index and db connection");
+		auto connection = zxorm::Connection<skills_table>("C:/Users/Sergei/Downloads/skills.sqlite");
         auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
-        auto connection = zxorm::Connection<skills_table>("C:/Users/Sergei/Downloads/skills.sqlite");
-        logger->info("Querying skills");
+
+		logger->info("Querying skills");
         auto skills = connection.select_query<skills_table>()
                               .order_by < skills_table::field_t < "id" >> (zxorm::order_t::ASC)
                 .where_many(
@@ -113,16 +121,16 @@ auto main(int argc, char **argv) -> int {
         }
         logger->info("Skills count = {}", skills.size());
 
-        const auto batch_num = 10;
+        const auto batch_num_skills = 10;
 
-        const auto batch_size = skills.size() / batch_num;
+        const auto batch_size_skills = skills.size() / batch_num_skills;
 
-        for (auto i = 0; i < batch_num; ++i) {
+        for (auto i = 0; i < batch_num_skills; ++i) {
             logger->info("Processing batch {}", i);
             logger->info("Skills in batch {}", i);
             std::vector<std::string> skill_path_vector;
             std::vector<faiss::idx_t> skill_id_vector;
-            for (const auto &skill: skills | std::views::drop(i * batch_size) | std::views::take(batch_size)) {
+            for (const auto &skill: skills | std::views::drop(i * batch_size_skills) | std::views::take(batch_size_skills)) {
                 logger->info("id = {}, path = {}", skill.id, skill.path);
                 skill_path_vector.emplace_back(skill.path);
                 skill_id_vector.emplace_back(skill.id);
@@ -133,6 +141,34 @@ auto main(int argc, char **argv) -> int {
             index->save("skills_" + std::to_string(i) + ".idx");
             logger->info("Index of batch {} saved", i);
         }
+
+
+
+        const auto batch_num = 100;
+
+        const auto batch_size = packages.size() / batch_num;
+
+        for (auto i = 0; i < batch_num; ++i) {
+            logger->info("Processing batch {}", i);
+            logger->info("Packages in batch {}", i);
+            std::vector<std::string> packages_text_vector;
+            for (const auto &package: packages | std::views::drop(i * batch_size) | std::views::take(batch_size)) {
+                logger->info("id = {}, title = {}", package.id, package.title);
+				packages_text_vector.emplace_back(package.title);
+            }
+            logger->info("Searching {} packages of batch {} to index", packages_text_vector.size(), i);
+            auto batch_results = index->search(packages_text_vector, 1);
+			for (auto j = 0; j < packages_text_vector.size(); j++ ) {
+				auto skill1 = connection.find_record<skill>(static_cast<int>(batch_results[j][0]));
+				if (!skill1.has_value())
+				  throw std::runtime_error("On of skill from index not found");
+				logger->info ("{} | {} ; {}", packages[i * batch_size + j].title, skill1.value().name, batch_results[j][0]);
+			}
+        }
+/////
+
+
+
     }
     catch (const zxorm::Error &e) {
         logger->error(e.what());

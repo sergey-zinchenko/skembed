@@ -32,6 +32,8 @@ private:
 
     void batch_decode(llama_batch &batch, float *output) const;
 
+    void log_embeddings(const std::vector<std::string> &prompts, const flat_embed &embeds) const;
+
     static void batch_add_seq(llama_batch &batch, const std::vector<int32_t> &tokens, int seq_id);
 
     gpt_params params_;

@@ -33,9 +33,9 @@ public:
         std::shared_ptr<std::vector<float_t>> data_;
     };
 
-    [[nodiscard]] auto begin() -> iterator;
+    [[nodiscard]] auto begin() const-> iterator;
 
-    [[nodiscard]] auto end() -> iterator;
+    [[nodiscard]] auto end() const -> iterator;
 
     [[nodiscard]] auto data() const -> float_t *;
 
