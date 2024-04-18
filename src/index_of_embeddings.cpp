@@ -9,12 +9,12 @@ void index_of_embeddings::add(const std::vector<faiss::idx_t> &keys, const std::
     index_delegate_->add(keys, embeddings);
 }
 
-void index_of_embeddings::save(const std::filesystem::path &indexPath) {
-    index_delegate_->save(indexPath);
+void index_of_embeddings::save(const std::filesystem::path &index_path) {
+    index_delegate_->save(index_path);
 }
 
-void index_of_embeddings::load(const std::filesystem::path &indexPath) {
-    index_delegate_->load(indexPath);
+void index_of_embeddings::load(const std::filesystem::path &index_path) {
+    index_delegate_->load(index_path);
 }
 
 index_of_embeddings::index_of_embeddings(std::shared_ptr<abstract_model> model,

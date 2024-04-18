@@ -17,8 +17,8 @@ public:
     [[nodiscard]] virtual auto search(const ValueType &value,
                                       ResultSizeType number_of_extracted_results) -> std::vector<std::vector<KeyType>> = 0;
 
-    virtual void save(const std::filesystem::path &indexPath) = 0;
+    virtual void save(const std::filesystem::path &index_path) = 0;
 
-    virtual void load(const std::filesystem::path &indexPath) = 0;
+    virtual void load(const std::filesystem::path &index_path) = 0;
 };
 

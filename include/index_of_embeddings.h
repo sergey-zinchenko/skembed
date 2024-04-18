@@ -22,9 +22,9 @@ public:
     [[nodiscard]] auto search(const std::vector<std::string> &value,
                               faiss::idx_t number_of_extracted_results) -> std::vector<std::vector<faiss::idx_t>> override;
 
-    void save(const std::filesystem::path &indexPath) override;
+    void save(const std::filesystem::path &index_path) override;
 
-    void load(const std::filesystem::path &indexPath) override;
+    void load(const std::filesystem::path &index_path) override;
 
 private:
     std::shared_ptr<abstract_model> model_;

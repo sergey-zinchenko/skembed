@@ -12,17 +12,17 @@ nearest_neighbor_index::nearest_neighbor_index(std::shared_ptr<spdlog::logger> l
         logger_(std::move(logger)) {
 }
 
-void nearest_neighbor_index::save(const std::filesystem::path &indexPath) {
-    logger_->trace("Saving index to {}", indexPath.string());
+void nearest_neighbor_index::save(const std::filesystem::path &index_path) {
+    logger_->trace("Saving index to {}", index_path.string());
     std::shared_lock lock(mutex_);
-    faiss::write_index(index_.get(), indexPath.string().c_str());
-    logger_->trace("Index saved to {}", indexPath.string());
+    faiss::write_index(index_.get(), index_path.string().c_str());
+    logger_->trace("Index saved to {}", index_path.string());
 }
 
-void nearest_neighbor_index::load(const std::filesystem::path &indexPath) {
-    logger_->trace("Loading index from {}", indexPath.string());
+void nearest_neighbor_index::load(const std::filesystem::path &index_path) {
+    logger_->trace("Loading index from {}", index_path.string());
     std::unique_lock lock(mutex_);
-    auto p_index = std::shared_ptr<faiss::Index>(faiss::read_index(indexPath.string().c_str()));
+    auto p_index = std::shared_ptr<faiss::Index>(faiss::read_index(index_path.string().c_str()));
     auto p_index_id_map = std::dynamic_pointer_cast<faiss::IndexIDMap>(p_index);
     if (!p_index_id_map) {
         throw std::runtime_error("Failed to cast index to IndexIDMap");
@@ -49,8 +49,8 @@ void nearest_neighbor_index::add(const std::vector<faiss::idx_t> &keys, const fl
             throw std::runtime_error("Index dimension is different from the dimension of the added vectors");
         }
     } else {
-        auto *underlying_index_ = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(values.row_size()));
-        index_ = std::make_shared<faiss::IndexIDMap>(underlying_index_);
+        auto *underlying_index = new faiss::IndexFlatL2(static_cast<faiss::idx_t>(values.row_size()));
+        index_ = std::make_shared<faiss::IndexIDMap>(underlying_index);
     }
     index_->add_with_ids(static_cast<faiss::idx_t>(values.rows()), values.data(), keys.data());
     logger_->trace("Added {} vectors to index. New index size is {}", keys.size(), index_->ntotal);

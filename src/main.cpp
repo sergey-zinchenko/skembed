@@ -47,14 +47,14 @@ auto create_logger() -> std::shared_ptr<spdlog::logger> {
 }
 
 
-using SkillsTable = zxorm::Table<"Skills", skill,
-        zxorm::Column<"id", &skill::id, zxorm::PrimaryKey<>>,
-        zxorm::Column<"name", &skill::name>,
-        zxorm::Column<"parent_skill_name", &skill::parent_skill_name>,
-        zxorm::Column<"node_level", &skill::node_level>,
-        zxorm::Column<"aliases", &skill::aliases>,
-        zxorm::Column<"path", &skill::path>,
-        zxorm::Column<"tags", &skill::tags>>;
+using skills_table = zxorm::Table<"Skills", skill,
+								  zxorm::Column<"id", &skill::id, zxorm::PrimaryKey<>>,
+								  zxorm::Column<"name", &skill::name>,
+								  zxorm::Column<"parent_skill_name", &skill::parent_skill_name>,
+								  zxorm::Column<"node_level", &skill::node_level>,
+								  zxorm::Column<"aliases", &skill::aliases>,
+								  zxorm::Column<"path", &skill::path>,
+								  zxorm::Column<"tags", &skill::tags>>;
 
 auto main(int argc, char **argv) -> int {
 #ifdef _WIN32
@@ -100,12 +100,12 @@ auto main(int argc, char **argv) -> int {
         logger->info("Process start");
         logger->info("Creating index and db connection");
         auto index = injector.create<std::unique_ptr<index_of_embeddings>>();
-        auto connection = zxorm::Connection<SkillsTable>("C:/Users/Sergei/Downloads/skills.sqlite");
+        auto connection = zxorm::Connection<skills_table>("C:/Users/Sergei/Downloads/skills.sqlite");
         logger->info("Querying skills");
-        auto skills = connection.select_query<SkillsTable>()
-                              .order_by < SkillsTable::field_t < "id" >> (zxorm::order_t::ASC)
+        auto skills = connection.select_query<skills_table>()
+                              .order_by < skills_table::field_t < "id" >> (zxorm::order_t::ASC)
                 .where_many(
-                        SkillsTable::field_t<"path">().like("%.NET%") || SkillsTable::field_t<"path">().like("%C#%"))
+					skills_table::field_t<"path">().like("%.NET%") || skills_table::field_t<"path">().like("%C#%"))
                 .exec().to_vector();
         if (skills.empty()) {
             logger->error("No skills found");

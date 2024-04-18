@@ -22,9 +22,9 @@ public:
     search(const flat_embed &values,
            faiss::idx_t number_of_extracted_results) -> std::vector<std::vector<faiss::idx_t>> override;
 
-    void save(const std::filesystem::path &indexPath) override;
+    void save(const std::filesystem::path &index_path) override;
 
-    void load(const std::filesystem::path &indexPath) override;
+    void load(const std::filesystem::path &index_path) override;
 
 private:
     [[nodiscard]] static auto reshape_vectors(const std::vector<faiss::idx_t> &flat,
