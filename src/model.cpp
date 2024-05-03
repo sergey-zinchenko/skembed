@@ -42,6 +42,7 @@ model::model (gpt_params params, std::function<flat_embed (size_t, size_t)> embe
 	}
   n_embed_ = llama_n_embd (model_);
   eos_token_ = llama_token_eos (model_);
+  sep_token = llama_token_sep (model_);
   logger_->info ("Model loaded");
 }
 
@@ -59,6 +60,10 @@ auto model::tokenize_and_trim (const std::vector<std::string>& prompts) const ->
 	  if (tokenized_elem.back () != eos_token_)
 		{
 		  tokenized_elem.emplace_back (eos_token_);
+		}
+	  if (tokenized_elem.empty () || tokenized_elem.back () != sep_token)
+		{
+		  tokenized_elem.push_back (sep_token);
 		}
 
 	  tokenized_prompts.emplace_back (tokenized_elem);
@@ -158,10 +163,10 @@ auto model::embed (const std::vector<std::string>& prompts) -> flat_embed
 void model::log_embeddings (const std::vector<std::string>& prompts, const flat_embed& embeds) const
 {
   auto i = 0;
-  for (auto embedding : embeds)
+  for (auto&& embed : embeds)
 	{
 	  std::stringstream ss;
-	  for (auto it : embedding)
+	  for (auto it : embed)
 		{
 		  ss << it << " ";
 		}
