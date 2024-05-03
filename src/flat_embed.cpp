@@ -15,13 +15,13 @@ flat_embed::iterator::iterator(std::shared_ptr<std::vector<float_t>> data, const
         offset_(offset) {}
 
 auto flat_embed::iterator::operator++() -> flat_embed::iterator & {
-  auto next_row_offset = offset_ + row_size_;
-  if (next_row_offset <= last_row_offset_) {
-	  offset_ = next_row_offset;
-	} else {
-	  offset_ = last_row_offset_;
-	}
-  return *this;
+    auto next_row_offset = offset_ + row_size_;
+    if (next_row_offset <= last_row_offset_) {
+        offset_ = next_row_offset;
+    } else {
+        offset_ = last_row_offset_;
+    }
+    return *this;
 }
 
 auto flat_embed::iterator::operator==(const flat_embed::iterator &other) const -> bool {

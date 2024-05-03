@@ -46,5 +46,5 @@ private:
     int32_t n_batch_{};
     int32_t n_embed_{};
     llama_token eos_token_{};
-	llama_token sep_token {};
+    llama_token sep_token{};
 };
